@@ -62,6 +62,7 @@ See `docs/security-validation-summary.md` for the full breakdown.
 1. `/health` returns 200 with component-level detail even when DB/Redis are unreachable — consumers should evaluate `checks`; use `/ready` for orchestration gates.
 2. Alembic controls the 7 sprint-managed tables; the remaining schema is created idempotently via `Base.metadata.create_all` at startup. **Ticket DB-001:** move all tables under Alembic ownership.
 3. AI features require at least one provider API key (OpenAI, Anthropic, Gemini, DeepSeek, Mistral, or OpenRouter); no provider fallback UI exists yet.
+4. `ENVIRONMENT=production` does not force `DEBUG=false` — production deployments must set `DEBUG=false` explicitly to disable SQLAlchemy echo and debug logging (documented in `.env.example` and the deployment runbook).
 
 ## Operational Entry Points
 - `/live` — process liveness (no dependencies)

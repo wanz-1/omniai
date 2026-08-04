@@ -32,10 +32,14 @@ Required for startup:
 | `REDIS_URL` | e.g. `redis://redis:6379/0` |
 | `JWT_SECRET` | random ≥ 32 bytes (`openssl rand -hex 32`) |
 | `FRONTEND_URL` | CORS origin |
+| `DEBUG` | **MUST be `false` in production/staging.** `ENVIRONMENT=production` does not force this; `debug=true` enables SQLAlchemy `echo` (SQL query logging) and verbose debug logging |
 | One AI provider key | `OPENAI_API_KEY` or `ANTHROPIC_API_KEY` / `GOOGLE_GEMINI_API_KEY` / `DEEPSEEK_API_KEY` / `MISTRAL_API_KEY` / `OPENROUTER_API_KEY` |
 
 Verify parity: every key in `Settings` is documented in `.env.example`
 (locked by `test_env_example_covers_all_settings_fields`).
+
+Full environment matrix (tiers, per-service requirements, secrets hygiene,
+DEBUG sign-off): see `docs/environment-configuration.md`.
 
 ## 3. Database Migration (gate 3)
 
