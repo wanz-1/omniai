@@ -1,0 +1,116 @@
+{
+  "title": "OmniAI — System Overview",
+  "uid": "omniai-system",
+  "version": 1,
+  "timezone": "utc",
+  "editable": false,
+  "panels": [
+    {
+      "title": "Application Status",
+      "type": "stat",
+      "gridPos": {"x": 0, "y": 0, "w": 3, "h": 3},
+      "targets": [{"expr": "up{job=\"omniai-api\"}", "legendFormat": "API"}],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {"mode": "absolute", "steps": [
+            {"color": "red", "value": 0},
+            {"color": "green", "value": 1}
+          ]},
+          "unit": "none",
+          "colorMode": "background"
+        }
+      }
+    },
+    {
+      "title": "CPU Usage",
+      "type": "gauge",
+      "gridPos": {"x": 3, "y": 0, "w": 3, "h": 3},
+      "targets": [{"expr": "100 - (avg by(instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)", "legendFormat": "CPU"}],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {"mode": "absolute", "steps": [
+            {"color": "green", "value": 0},
+            {"color": "yellow", "value": 60},
+            {"color": "red", "value": 85}
+          ]},
+          "unit": "percent",
+          "max": 100
+        }
+      }
+    },
+    {
+      "title": "Memory Usage",
+      "type": "gauge",
+      "gridPos": {"x": 6, "y": 0, "w": 3, "h": 3},
+      "targets": [{"expr": "100 * (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)", "legendFormat": "Memory"}],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {"mode": "absolute", "steps": [
+            {"color": "green", "value": 0},
+            {"color": "yellow", "value": 70},
+            {"color": "red", "value": 85}
+          ]},
+          "unit": "percent",
+          "max": 100
+        }
+      }
+    },
+    {
+      "title": "Disk Usage",
+      "type": "gauge",
+      "gridPos": {"x": 9, "y": 0, "w": 3, "h": 3},
+      "targets": [{"expr": "100 * (1 - node_filesystem_avail_bytes{mountpoint=\"/\"} / node_filesystem_size_bytes{mountpoint=\"/\"})", "legendFormat": "Disk"}],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {"mode": "absolute", "steps": [
+            {"color": "green", "value": 0},
+            {"color": "yellow", "value": 70},
+            {"color": "red", "value": 85}
+          ]},
+          "unit": "percent",
+          "max": 100
+        }
+      }
+    },
+    {
+      "title": "Requests per Second",
+      "type": "timeseries",
+      "gridPos": {"x": 0, "y": 4, "w": 6, "h": 6},
+      "targets": [{"expr": "rate(api_requests_total[1m])", "legendFormat": "rps"}],
+      "fieldConfig": {
+        "defaults": {"unit": "rps", "custom": {"showPoints": "never"}}
+      }
+    },
+    {
+      "title": "Error Rate",
+      "type": "timeseries",
+      "gridPos": {"x": 6, "y": 4, "w": 6, "h": 6},
+      "targets": [
+        {"expr": "rate(api_errors_total[5m]) / rate(api_requests_total[5m]) * 100", "legendFormat": "error %"}
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "percent", "custom": {"showPoints": "never"}}
+      }
+    },
+    {
+      "title": "HTTP Status Codes",
+      "type": "piechart",
+      "gridPos": {"x": 0, "y": 11, "w": 6, "h": 6},
+      "targets": [{"expr": "sum(rate(api_requests_total[5m])) by (status_code)", "legendFormat": "{{status_code}}"}]
+    },
+    {
+      "title": "Active Users",
+      "type": "stat",
+      "gridPos": {"x": 6, "y": 11, "w": 6, "h": 3},
+      "targets": [{"expr": "active_users", "legendFormat": "users"}]
+    },
+    {
+      "title": "Recent Alerts",
+      "type": "table",
+      "gridPos": {"x": 6, "y": 14, "w": 6, "h": 5},
+      "targets": [{"expr": "ALERTS", "legendFormat": "{{alertname}}"}]
+    }
+  ],
+  "tags": ["omniai", "production"],
+  "schemaVersion": 39
+}

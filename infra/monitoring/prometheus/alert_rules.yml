@@ -1,0 +1,118 @@
+groups:
+  - name: omniai_critical
+    interval: 30s
+    rules:
+      - alert: ApplicationDown
+        expr: up{job="omniai-api"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "OmniAI API is down"
+          description: "The OmniAI API has been unreachable for more than 2 minutes."
+
+      - alert: DatabaseFailure
+        expr: probe_success{job="postgres"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Database unreachable"
+          description: "PostgreSQL is not responding to health checks."
+
+      - alert: HighErrorRate
+        expr: |
+          rate(api_errors_total{status_code=~"5.."}[5m])
+          /
+          rate(api_requests_total[5m])
+          > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High API error rate"
+          description: "5xx errors exceed 5% of total requests over the last 5 minutes."
+
+      - alert: AIProviderFailure
+        expr: rate(ai_requests_total{status="failed"}[5m]) > 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "AI provider failures detected"
+          description: "AI requests are failing. Check provider connectivity and API keys."
+
+  - name: omniai_warning
+    interval: 30s
+    rules:
+      - alert: HighLatency
+        expr: histogram_quantile(0.95, rate(api_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "API latency exceeds threshold"
+          description: "P95 API response latency is above 2 seconds."
+
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is above 80% for more than 10 minutes."
+
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 85
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is above 85%."
+
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 < 15
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low disk space"
+          description: "Disk usage is above 85%."
+
+      - alert: GrowingQueue
+        expr: rate(celery_queue_size[10m]) > 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Background queue growing"
+          description: "The Celery task queue is continuously growing."
+
+      - alert: AITokenSpike
+        expr: rate(ai_tokens_used_total[5m]) > 100000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Unusual AI token consumption"
+          description: "Token usage exceeds 100K tokens/min. Investigate for abuse or runaway jobs."
+
+      - alert: ConnectorSyncFailures
+        expr: rate(connector_sync_failures_total[10m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Connector sync failures"
+          description: "More than 5 connector sync failures in the last 10 minutes."
+
+      - alert: DatabaseConnectionHigh
+        expr: pg_stat_activity_count > 50
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High database connections"
+          description: "PostgreSQL connections exceed 50."

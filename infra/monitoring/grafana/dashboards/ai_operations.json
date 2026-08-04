@@ -1,0 +1,75 @@
+{
+  "title": "OmniAI — AI Operations",
+  "uid": "omniai-ai",
+  "version": 1,
+  "timezone": "utc",
+  "editable": false,
+  "panels": [
+    {
+      "title": "AI Requests per Hour",
+      "type": "timeseries",
+      "gridPos": {"x": 0, "y": 0, "w": 6, "h": 6},
+      "targets": [{"expr": "rate(ai_requests_total[1h]) * 3600", "legendFormat": "{{model}}"}],
+      "fieldConfig": {
+        "defaults": {"unit": "req/hr", "custom": {"showPoints": "never"}}
+      }
+    },
+    {
+      "title": "Token Consumption",
+      "type": "timeseries",
+      "gridPos": {"x": 6, "y": 0, "w": 6, "h": 6},
+      "targets": [
+        {"expr": "rate(ai_tokens_used_total{token_type=\"prompt\"}[5m])", "legendFormat": "prompt ({{model}})"},
+        {"expr": "rate(ai_tokens_used_total{token_type=\"completion\"}[5m])", "legendFormat": "completion ({{model}})"}
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "tokens/s", "custom": {"showPoints": "never"}}
+      }
+    },
+    {
+      "title": "Model Distribution",
+      "type": "piechart",
+      "gridPos": {"x": 0, "y": 7, "w": 4, "h": 6},
+      "targets": [{"expr": "sum(rate(ai_model_usage_total[1h])) by (model)", "legendFormat": "{{model}}"}]
+    },
+    {
+      "title": "Average Response Time",
+      "type": "timeseries",
+      "gridPos": {"x": 4, "y": 7, "w": 4, "h": 6},
+      "targets": [
+        {"expr": "rate(ai_response_latency_seconds_sum[5m]) / rate(ai_response_latency_seconds_count[5m])", "legendFormat": "{{model}}"}
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "s", "custom": {"showPoints": "never"}}
+      }
+    },
+    {
+      "title": "Failed Generations",
+      "type": "timeseries",
+      "gridPos": {"x": 8, "y": 7, "w": 4, "h": 6},
+      "targets": [
+        {"expr": "rate(ai_requests_total{status=\"failed\"}[5m])", "legendFormat": "{{model}}"}
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "fail/s", "custom": {"showPoints": "never"}}
+      }
+    },
+    {
+      "title": "Estimated AI Cost (USD)",
+      "type": "timeseries",
+      "gridPos": {"x": 0, "y": 14, "w": 6, "h": 6},
+      "targets": [{"expr": "rate(ai_cost_estimate_total[1h])", "legendFormat": "{{model}}"}],
+      "fieldConfig": {
+        "defaults": {"unit": "USD", "custom": {"showPoints": "never"}}
+      }
+    },
+    {
+      "title": "Context Size Distribution",
+      "type": "heatmap",
+      "gridPos": {"x": 6, "y": 14, "w": 6, "h": 6},
+      "targets": [{"expr": "rate(ai_context_size_bytes_bucket[1h])", "legendFormat": "{{model}}"}]
+    }
+  ],
+  "tags": ["omniai", "ai", "operations"],
+  "schemaVersion": 39
+}

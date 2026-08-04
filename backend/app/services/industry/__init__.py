@@ -1,0 +1,5 @@
+from app.services.industry.knowledge_manager import IndustryKnowledgeManager
+from app.services.industry.solution_builder import IndustrySolutionBuilder
+from app.services.industry.compliance_engine import IndustryComplianceEngine
+from app.services.industry.industry_agent_manager import IndustryAgentManager
+from app.services.industry.template_engine import IndustryTemplateEngine

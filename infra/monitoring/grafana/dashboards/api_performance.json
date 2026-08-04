@@ -1,0 +1,58 @@
+{
+  "title": "OmniAI — API Performance",
+  "uid": "omniai-api",
+  "version": 1,
+  "timezone": "utc",
+  "editable": false,
+  "panels": [
+    {
+      "title": "Requests per Minute",
+      "type": "timeseries",
+      "gridPos": {"x": 0, "y": 0, "w": 6, "h": 6},
+      "targets": [{"expr": "rate(api_requests_total[1m]) * 60", "legendFormat": "{{method}} {{endpoint}}"}],
+      "fieldConfig": {
+        "defaults": {"unit": "rpm", "custom": {"showPoints": "never"}}
+      }
+    },
+    {
+      "title": "Request Latency P95",
+      "type": "timeseries",
+      "gridPos": {"x": 6, "y": 0, "w": 6, "h": 6},
+      "targets": [
+        {"expr": "histogram_quantile(0.95, rate(api_request_duration_seconds_bucket[5m]))", "legendFormat": "P95"},
+        {"expr": "histogram_quantile(0.99, rate(api_request_duration_seconds_bucket[5m]))", "legendFormat": "P99"}
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "s", "custom": {"showPoints": "never"}}
+      }
+    },
+    {
+      "title": "Error Percentage",
+      "type": "timeseries",
+      "gridPos": {"x": 0, "y": 7, "w": 6, "h": 6},
+      "targets": [
+        {"expr": "rate(api_errors_total{status_code=~\"5..\"}[5m]) / rate(api_requests_total[5m]) * 100", "legendFormat": "5xx %"},
+        {"expr": "rate(api_errors_total{status_code=~\"4..\"}[5m]) / rate(api_requests_total[5m]) * 100", "legendFormat": "4xx %"}
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "percent", "custom": {"showPoints": "never"}}
+      }
+    },
+    {
+      "title": "Slowest Endpoints (P95)",
+      "type": "table",
+      "gridPos": {"x": 6, "y": 7, "w": 6, "h": 6},
+      "targets": [
+        {"expr": "histogram_quantile(0.95, rate(api_request_duration_seconds_bucket[5m]))", "legendFormat": "{{method}} {{endpoint}}"}
+      ]
+    },
+    {
+      "title": "Requests by Endpoint",
+      "type": "barchart",
+      "gridPos": {"x": 0, "y": 14, "w": 12, "h": 7},
+      "targets": [{"expr": "sum(rate(api_requests_total[5m])) by (endpoint)", "legendFormat": "{{endpoint}}"}]
+    }
+  ],
+  "tags": ["omniai", "api", "performance"],
+  "schemaVersion": 39
+}

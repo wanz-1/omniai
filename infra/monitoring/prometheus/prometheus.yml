@@ -1,0 +1,63 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  scrape_timeout: 10s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+rule_files:
+  - alert_rules.yml
+
+scrape_configs:
+  - job_name: "omniai-api"
+    metrics_path: /metrics
+    scrape_interval: 10s
+    static_configs:
+      - targets:
+          - backend:8000
+        labels:
+          service: omniai-api
+          environment: production
+
+  - job_name: "omniai-api-local"
+    metrics_path: /metrics
+    scrape_interval: 10s
+    static_configs:
+      - targets:
+          - host.docker.internal:8000
+        labels:
+          service: omniai-api
+          environment: development
+
+  - job_name: "postgres"
+    static_configs:
+      - targets:
+          - postgres-exporter:9187
+        labels:
+          service: postgres
+    metrics_path: /metrics
+
+  - job_name: "redis"
+    static_configs:
+      - targets:
+          - redis-exporter:9121
+        labels:
+          service: redis
+
+  - job_name: "node"
+    static_configs:
+      - targets:
+          - node-exporter:9100
+        labels:
+          service: node
+
+  - job_name: "celery-worker"
+    static_configs:
+      - targets:
+          - celery-exporter:9800
+        labels:
+          service: celery-worker

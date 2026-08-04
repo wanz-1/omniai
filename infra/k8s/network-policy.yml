@@ -1,0 +1,97 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: omniai-network-policy
+  labels:
+    app: omniai
+spec:
+  podSelector:
+    matchLabels:
+      app: omniai
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+        - podSelector:
+            matchLabels:
+              app: omniai
+      ports:
+        - port: 8000
+        - port: 3000
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: omniai
+      ports:
+        - port: 5432
+        - port: 6379
+        - port: 6333
+        - port: 9000
+        - port: 11434
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+      ports:
+        - port: 443
+        - port: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: omniai-db-network-policy
+  labels:
+    app: omniai
+spec:
+  podSelector:
+    matchLabels:
+      app: omniai
+      tier: database
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: omniai
+              tier: backend
+        - podSelector:
+            matchLabels:
+              app: omniai
+              tier: worker
+      ports:
+        - port: 5432
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: omniai-cache-network-policy
+  labels:
+    app: omniai
+spec:
+  podSelector:
+    matchLabels:
+      app: omniai
+      tier: cache
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: omniai
+              tier: backend
+        - podSelector:
+            matchLabels:
+              app: omniai
+              tier: worker
+      ports:
+        - port: 6379

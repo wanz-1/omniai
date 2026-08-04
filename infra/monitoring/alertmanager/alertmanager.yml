@@ -1,0 +1,74 @@
+global:
+  resolve_timeout: 5m
+  slack_api_url: "${SLACK_WEBHOOK_URL}"
+  smtp_smarthost: "${SMTP_HOST}:${SMTP_PORT}"
+  smtp_from: "${SMTP_FROM}"
+  smtp_auth_username: "${SMTP_USER}"
+  smtp_auth_password: "${SMTP_PASSWORD}"
+
+route:
+  receiver: "default"
+  group_by:
+    - alertname
+    - severity
+    - service
+  group_wait: 10s
+  group_interval: 2m
+  repeat_interval: 30m
+  routes:
+    - receiver: "critical"
+      match:
+        severity: critical
+      repeat_interval: 5m
+    - receiver: "warning"
+      match:
+        severity: warning
+      repeat_interval: 30m
+    - receiver: "slack"
+      match_re:
+        severity: critical|warning
+
+receivers:
+  - name: "default"
+    email_configs:
+      - to: "${ALERT_EMAIL}"
+        headers:
+          subject: "[OmniAI] {{ .GroupLabels.alertname }}"
+
+  - name: "critical"
+    email_configs:
+      - to: "${ALERT_EMAIL}"
+        headers:
+          subject: "[OmniAI CRITICAL] {{ .GroupLabels.alertname }}"
+    slack_configs:
+      - channel: "#alerts-critical"
+        title: "[CRITICAL] {{ .GroupLabels.alertname }}"
+        text: "{{ .CommonAnnotations.description }}"
+        send_resolved: true
+
+  - name: "warning"
+    email_configs:
+      - to: "${ALERT_EMAIL}"
+        headers:
+          subject: "[OmniAI WARNING] {{ .GroupLabels.alertname }}"
+    slack_configs:
+      - channel: "#alerts-warning"
+        title: "[WARNING] {{ .GroupLabels.alertname }}"
+        text: "{{ .CommonAnnotations.description }}"
+        send_resolved: true
+
+  - name: "slack"
+    slack_configs:
+      - api_url: "${SLACK_WEBHOOK_URL}"
+        channel: "#alerts"
+        title: "{{ .GroupLabels.severity | toUpper }}: {{ .GroupLabels.alertname }}"
+        text: "{{ .CommonAnnotations.description }}"
+        send_resolved: true
+
+inhibit_rules:
+  - target_match:
+      severity: warning
+    source_match:
+      severity: critical
+    equal:
+      - service

@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: omniai-celery-beat
+  labels:
+    app: omniai
+    tier: worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: omniai
+      tier: worker
+      component: beat
+  template:
+    metadata:
+      labels:
+        app: omniai
+        tier: worker
+        component: beat
+    spec:
+      containers:
+        - name: celery-beat
+          image: omniai/backend:latest
+          command: ["celery", "-A", "app.tasks.celery_app", "beat", "--loglevel=info", "--scheduler", "celery.beat.PersistentScheduler"]
+          envFrom:
+            - configMapRef:
+                name: omniai-config
+            - secretRef:
+                name: omniai-secrets
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"

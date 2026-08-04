@@ -1,0 +1,33 @@
+version: "3.8"
+
+services:
+  trivy:
+    image: aquasec/trivy:latest
+    command: fs --exit-code 1 --severity HIGH,CRITICAL /scan
+    volumes:
+      - ../../backend:/scan/backend
+      - ../../frontend:/scan/frontend
+      - trivy-cache:/root/.cache/trivy
+    profiles:
+      - security-scan
+
+  safety:
+    image: pyfound/security-scan
+    working_dir: /scan
+    command: safety check -r requirements/base.txt
+    volumes:
+      - ../../backend:/scan
+    profiles:
+      - security-scan
+
+  bandit:
+    image: python:3.12-slim
+    working_dir: /scan
+    command: sh -c "pip install bandit && bandit -r app/ -f json -o bandit-report.json || true"
+    volumes:
+      - ../../backend:/scan
+    profiles:
+      - security-scan
+
+volumes:
+  trivy-cache:

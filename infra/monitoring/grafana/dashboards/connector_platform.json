@@ -1,0 +1,57 @@
+{
+  "title": "OmniAI — Connector Platform",
+  "uid": "omniai-connector",
+  "version": 1,
+  "timezone": "utc",
+  "editable": false,
+  "panels": [
+    {
+      "title": "Active Integrations",
+      "type": "stat",
+      "gridPos": {"x": 0, "y": 0, "w": 3, "h": 3},
+      "targets": [{"expr": "sum(connector_active_integrations)", "legendFormat": "total"}],
+      "fieldConfig": {
+        "defaults": {"unit": "none", "colorMode": "background"}
+      }
+    },
+    {
+      "title": "Integrations by Type",
+      "type": "piechart",
+      "gridPos": {"x": 3, "y": 0, "w": 3, "h": 3},
+      "targets": [{"expr": "connector_active_integrations", "legendFormat": "{{connector_type}}"}]
+    },
+    {
+      "title": "Sync Failures",
+      "type": "timeseries",
+      "gridPos": {"x": 6, "y": 0, "w": 6, "h": 6},
+      "targets": [
+        {"expr": "rate(connector_sync_failures_total[5m])", "legendFormat": "{{connector_type}}"}
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "fail/s", "custom": {"showPoints": "never"}}
+      }
+    },
+    {
+      "title": "Background Queue Size",
+      "type": "timeseries",
+      "gridPos": {"x": 0, "y": 7, "w": 6, "h": 6},
+      "targets": [{"expr": "celery_queue_size", "legendFormat": "{{queue}}"}],
+      "fieldConfig": {
+        "defaults": {"custom": {"showPoints": "never"}}
+      }
+    },
+    {
+      "title": "Jobs Processed",
+      "type": "timeseries",
+      "gridPos": {"x": 6, "y": 7, "w": 6, "h": 6},
+      "targets": [
+        {"expr": "rate(celery_jobs_processed_total[5m])", "legendFormat": "{{queue}} ({{status}})"}
+      ],
+      "fieldConfig": {
+        "defaults": {"unit": "job/s", "custom": {"showPoints": "never"}}
+      }
+    }
+  ],
+  "tags": ["omniai", "connector", "integrations"],
+  "schemaVersion": 39
+}

@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: omniai-frontend
+  labels:
+    app: omniai
+    tier: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: omniai
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        app: omniai
+        tier: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: omniai/frontend:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NEXT_PUBLIC_API_URL
+              value: "https://api.omniai.example.com/api/v1"
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: omniai-frontend
+  labels:
+    app: omniai
+    tier: frontend
+spec:
+  selector:
+    app: omniai
+    tier: frontend
+  ports:
+    - port: 3000
+      targetPort: 3000
+  type: ClusterIP

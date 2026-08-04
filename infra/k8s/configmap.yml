@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: omniai-config
+  labels:
+    app: omniai
+data:
+  APP_VERSION: "6.0.0"
+  ENVIRONMENT: "production"
+  DEBUG: "false"
+  LOG_LEVEL: "INFO"
+  DATABASE_URL: "postgresql+asyncpg://omniai:$(DB_PASSWORD)@omniai-postgres:5432/omniai"
+  DATABASE_URL_SYNC: "postgresql://omniai:$(DB_PASSWORD)@omniai-postgres:5432/omniai"
+  REDIS_URL: "redis://omniai-redis:6379/0"
+  CELERY_BROKER_URL: "redis://omniai-redis:6379/1"
+  CELERY_RESULT_BACKEND: "redis://omniai-redis:6379/2"
+  S3_ENDPOINT: "http://omniai-minio:9000"
+  S3_BUCKET: "omniai-files"
+  S3_REGION: "us-east-1"
+  QDRANT_URL: "http://omniai-qdrant:6333"
+  OLLAMA_BASE_URL: "http://omniai-ollama:11434"
+  FRONTEND_URL: "https://app.omniai.example.com"
+  CORS_ORIGINS: "https://app.omniai.example.com,https://api.omniai.example.com"
+  RATE_LIMIT_ENABLED: "true"
+  RATE_LIMIT_REQUESTS: "1000"
+  RATE_LIMIT_WINDOW_SECONDS: "60"
+  MFA_ENABLED: "true"
+  MFA_ISSUER_NAME: "OmniAI"
+  MAX_UPLOAD_SIZE_MB: "50"
+  DEFAULT_AI_PROVIDER: "openai"

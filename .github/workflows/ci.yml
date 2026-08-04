@@ -1,0 +1,134 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend-lint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ruff mypy
+      - run: ruff check app/ tests/
+      - run: mypy app/ --ignore-missing-imports || true
+
+  backend-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: omniai
+          POSTGRES_PASSWORD: omniai
+          POSTGRES_DB: omniai
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements/dev.txt
+      - name: Run tests with coverage
+        run: |
+          python -m pytest tests/ -v --cov=app --cov-report=term-missing --cov-report=xml --cov-fail-under=30
+        env:
+          DATABASE_URL: postgresql+asyncpg://omniai:omniai@localhost:5432/omniai
+          DATABASE_URL_SYNC: postgresql://omniai:omniai@localhost:5432/omniai
+          REDIS_URL: redis://localhost:6379/0
+          OPENAI_API_KEY: ""
+          ANTHROPIC_API_KEY: ""
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v4
+        with:
+          file: backend/coverage.xml
+          fail_ci_if_error: false
+
+  backend-security-scan:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements/dev.txt safety
+      - name: Check dependencies for known vulnerabilities
+        run: safety check -r requirements/base.txt --full-report || true
+      - name: Check for hardcoded secrets
+        run: |
+          pip install truffleHog
+          trufflehog --filesystem . --only-verified || true
+
+  container-security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan backend image for vulnerabilities
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: backend
+          exit-code: 1
+          severity: CRITICAL
+          format: table
+      - name: Scan frontend image for vulnerabilities
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: frontend
+          exit-code: 1
+          severity: CRITICAL
+          format: table
+      - name: Scan IaC (Dockerfile / K8s / Terraform) for misconfigurations
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: config
+          scan-ref: infra
+          exit-code: 1
+          severity: CRITICAL
+          format: table
+
+  frontend-lint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm ci
+      - run: npm run lint
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm ci
+      - run: npm run build
