@@ -41,7 +41,7 @@ services:
       redis:
         condition: service_started
     command: >
-      sh -c "alembic upgrade head && python scripts/seed_plans.py && uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4"
+      sh -c "alembic -c alembic/alembic.ini upgrade head && python scripts/seed_plans.py && uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4"
     volumes:
       - uploads:/app/uploads
     restart: unless-stopped
@@ -75,6 +75,24 @@ services:
       CELERY_RESULT_BACKEND: redis://redis:6379/2
     depends_on:
       - backend
+      - redis
+    restart: unless-stopped
+
+  celery-beat:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile.celery
+    env_file:
+      - ../backend/.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://omniai:${DB_PASSWORD:-omniai_secret}@postgres:5432/omniai
+      DATABASE_URL_SYNC: postgresql://omniai:${DB_PASSWORD:-omniai_secret}@postgres:5432/omniai
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+    command: celery -A app.tasks.celery_app beat --loglevel=info
+    depends_on:
+      - celery-worker
       - redis
     restart: unless-stopped
 

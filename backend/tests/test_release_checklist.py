@@ -127,6 +127,32 @@ def test_debug_guardrail_allows_production_without_debug():
 
 
 @pytest.mark.unit
+def test_docs_disabled_in_production():
+    """/docs and /redoc must not be exposed when ENVIRONMENT=production."""
+    import subprocess
+    import sys
+
+    code = (
+        "from app.main import app\n"
+        "assert app.docs_url is None, app.docs_url\n"
+        "assert app.redoc_url is None, app.redoc_url\n"
+        "assert app.openapi_url == '/openapi.json'\n"
+    )
+    env = os.environ.copy()
+    env["ENVIRONMENT"] = "production"
+    env["DEBUG"] = "false"
+    env["JWT_SECRET"] = "x" * 32
+    proc = subprocess.run(
+        [sys.executable, "-c", code],
+        cwd=BACKEND_DIR,
+        env=env,
+        capture_output=True,
+        text=True,
+    )
+    assert proc.returncode == 0, proc.stderr
+
+
+@pytest.mark.unit
 def test_observability_endpoints_registered():
     paths = {getattr(route, "path", None) for route in app.routes}
     assert "/health" in paths

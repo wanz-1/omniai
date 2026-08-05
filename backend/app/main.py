@@ -74,8 +74,8 @@ app = FastAPI(
     description="OmniAI — One AI. Unlimited Possibilities.",
     version="6.0.0",
     lifespan=lifespan,
-    docs_url="/docs",
-    redoc_url="/redoc",
+    docs_url=None if settings.environment == "production" else "/docs",
+    redoc_url=None if settings.environment == "production" else "/redoc",
     openapi_url="/openapi.json",
 )
 
