@@ -8,10 +8,11 @@
   - **Status:** Functional, security, and contract validation complete. Release docs/config committed.
   - **Remaining operational gate:** operator executes on live staging — `alembic upgrade head`, `/ready` → 200 with live dependencies, live smoke suite + log audit. Then tag `v6.0.0`, push `main` + tag, and publish the 4 release documents (`release-notes-v6.0.0-rc1.md`, `deployment-runbook.md`, `rollback-procedure.md`, `security-validation-summary.md`).
 
-## v6.0.1
+## v6.0.1 — ✅ COMPLETE
 
 - **DEBUG startup guardrail** — detect production mode (e.g. `ENVIRONMENT=production`) and refuse to start if `DEBUG=True`, with a clear startup error explaining how to resolve the configuration. Converts a deployment misconfiguration into a fast, explicit failure.
-  - **Success criteria:** production boot with `DEBUG=true` fails fast with an actionable message; guard covered by tests; no false positives for dev/test environments.
+  - **Status:** implemented and shipped in `1dbec8d`; covered by 4 guardrail tests in `tests/test_release_checklist.py` (blocks production and staging with `DEBUG=true`, allows dev with `DEBUG=true`, allows production with `DEBUG=false`).
+- **Hardening release** — AI-service crash/leak fixes, Stripe webhook rewrites, API auth gaps closed, real Celery tasks and agent tools, Docker/CI hardening, and live frontend analytics. See `docs/v6.0.1-hardening-report.md`.
 
 ## v6.1
 

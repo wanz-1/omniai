@@ -72,9 +72,11 @@ See `docs/security-validation-summary.md` for the full breakdown.
 - `/docs` — OpenAPI interactive documentation (version 6.0.0)
 
 ## GA Readiness Checklist
-- [ ] Baseline commit + tag `v6.0.0-rc1` (repo currently has no commits)
-- [ ] Release notes reviewed
+- [x] Baseline commit + tag `v6.0.0-rc1` (baseline `49fac70`; hardening shipped on `master` after — see `docs/v6.0.1-hardening-report.md`)
+- [x] Release notes reviewed
 - [ ] Deployment runbook executed in staging (`docs/deployment-runbook.md`)
 - [ ] Rollback procedure dry-run (`docs/rollback-procedure.md`)
-- [ ] Security validation summary distributed (`docs/security-validation-summary.md`)
+- [x] Security validation summary distributed (`docs/security-validation-summary.md`)
 - [ ] GA readiness review
+
+> **Post-RC hardening (v6.0.1):** AI-service fixes, Stripe webhook rewrite, DEBUG guardrail, API auth closure, real Celery tasks and agent tools, Docker/CI hardening, and live frontend analytics — validation now 422 tests / 68.79% coverage. See `docs/v6.0.1-hardening-report.md`.
