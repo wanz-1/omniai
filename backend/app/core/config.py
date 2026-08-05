@@ -84,6 +84,15 @@ class Settings(BaseSettings):
 
     frontend_url: str = "http://localhost:3000"
 
+    smtp_host: Optional[str] = None
+    smtp_port: int = 587
+    smtp_username: Optional[str] = None
+    smtp_password: Optional[str] = None
+    smtp_from_email: Optional[str] = None
+    smtp_use_tls: bool = True
+
+    agent_workspace_dir: str = "./data/agent_workspace"
+
     @model_validator(mode="after")
     def _enforce_secure_secrets(self):
         env = self.environment.lower()

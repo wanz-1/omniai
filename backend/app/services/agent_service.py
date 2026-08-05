@@ -4,12 +4,14 @@ import logging
 import time
 import uuid
 from datetime import timezone
+from pathlib import Path
 from typing import Any, AsyncGenerator
 
 import httpx
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.exceptions import NotFoundError
 from app.models.agent import (
     AgentAnalytics,
@@ -40,9 +42,9 @@ class ToolExecutor:
             elif tool_type == "web_scrape":
                 return await self._web_scrape(params.get("url", ""))
             elif tool_type == "document_read":
-                return f"[Document Read: {params.get('path', '')}]"
+                return await self._document_read(params.get("path", ""))
             elif tool_type == "document_write":
-                return f"[Document written: {params.get('content', '')[:200]}...]"
+                return await self._document_write(params.get("path", ""), params.get("content", ""))
             elif tool_type == "data_analysis":
                 data = params.get("data", "")
                 analysis_type = params.get("type", "summary")
@@ -54,7 +56,7 @@ class ToolExecutor:
             elif tool_type == "api_call":
                 return await self._api_call(params.get("url", ""), params.get("method", "GET"), params.get("headers", {}), params.get("body", {}))
             elif tool_type == "email":
-                return f"[Email queued to {params.get('to', '')}: {params.get('subject', '')}]"
+                return await self._send_email(params.get("to", ""), params.get("subject", ""), params.get("body", ""))
             elif tool_type == "file_system":
                 return await self._file_system(params.get("action", "read"), params.get("path", ""), params.get("content", ""))
             elif tool_type == "image_generation":
@@ -68,7 +70,7 @@ class ToolExecutor:
             elif tool_type == "google_drive":
                 return await self._google_drive_action(params)
             elif tool_type == "crm":
-                return f"[CRM: {params.get('action', 'query')}]"
+                return await self._crm_action(params)
             elif tool_type == "custom":
                 return await self._custom_api_call(config.get("endpoint", ""), params)
             return f"[Unknown tool: {tool_type}]"
@@ -324,6 +326,80 @@ new Chart(document.getElementById('chart-{uuid.uuid4().hex[:8]}'), {_json.dumps(
                 return r.text[:2000]
         except Exception as e:
             return f"Custom API call error: {str(e)}"
+
+    def _workspace_path(self, path: str) -> Path | None:
+        workspace = Path(settings.agent_workspace_dir).resolve()
+        target = (workspace / path).resolve()
+        if str(target).startswith(str(workspace)):
+            return target
+        return None
+
+    async def _document_read(self, path: str) -> str:
+        target = self._workspace_path(path)
+        if target is None:
+            return "[Permission denied: path escapes agent workspace]"
+        if not target.is_file():
+            return f"[Document not found: {path}]"
+        content = target.read_text(encoding="utf-8", errors="replace")
+        if len(content) > 20000:
+            content = content[:20000] + "\n...[truncated]"
+        return content
+
+    async def _document_write(self, path: str, content: str) -> str:
+        target = self._workspace_path(path)
+        if target is None:
+            return "[Permission denied: path escapes agent workspace]"
+        try:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(content or "", encoding="utf-8")
+        except OSError as e:
+            return f"[Document write failed: {str(e)}]"
+        return f"[Document written: {path} ({len(content or '')} chars)]"
+
+    async def _send_email(self, to: str, subject: str, body: str) -> str:
+        if not to or "@" not in to:
+            return "[Email error: no valid recipient provided]"
+        if not settings.smtp_host:
+            return f"[Email queued to {to}: {subject}] (SMTP not configured; set SMTP_HOST to send)"
+        try:
+            def _smtp_send() -> None:
+                import smtplib
+                from email.mime.text import MIMEText
+
+                msg = MIMEText(body or "", "plain", "utf-8")
+                msg["Subject"] = subject or "(no subject)"
+                msg["From"] = settings.smtp_from_email or settings.smtp_username or "omniai@localhost"
+                msg["To"] = to
+                with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=30) as server:
+                    if settings.smtp_use_tls:
+                        server.starttls()
+                    if settings.smtp_username and settings.smtp_password:
+                        server.login(settings.smtp_username, settings.smtp_password)
+                    server.send_message(msg)
+
+            await asyncio.to_thread(_smtp_send)
+        except Exception as e:
+            return f"[Email error: {str(e)}]"
+        return f"[Email sent to {to}: {subject}]"
+
+    async def _crm_action(self, params: dict) -> str:
+        action = params.get("action", "query")
+        supported = {"query", "add_contact", "update_contact", "list_contacts"}
+        if action not in supported:
+            return f"[CRM error: unsupported action '{action}']"
+        name = params.get("name", params.get("contact", ""))
+        email = params.get("email", "")
+        if action in ("add_contact", "update_contact") and (not name or not email):
+            return "[CRM error: 'name' and 'email' are required for this action]"
+        summary = {
+            "status": "ok",
+            "action": action,
+            "entity": "contact",
+            "name": name,
+            "email": email,
+            "note": "CRM persistence requires a connected CRM integration (see Connector Platform > CRM)",
+        }
+        return json.dumps(summary, ensure_ascii=False)
 
 
 class MemoryManager:
