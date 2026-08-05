@@ -73,7 +73,7 @@ class BusinessAgentService:
             prompt=f"{context_str}\nUser query: {query}",
             system_prompt=system_prompt,
         )
-        response_text = response if isinstance(response, str) else response.get("text", "")
+        response_text = response if isinstance(response, str) else response.get("content", response.get("text", ""))
 
         suggestions = await self._extract_suggestions(response_text)
         if suggestions:
@@ -106,7 +106,7 @@ class BusinessAgentService:
             ),
             system_prompt=system_prompt,
         )
-        text = response if isinstance(response, str) else response.get("text", "")
+        text = response if isinstance(response, str) else response.get("content", response.get("text", ""))
 
         parsed = await self._parse_report_json(text)
         report = BusinessReport(
@@ -171,7 +171,7 @@ class BusinessAgentService:
                 + "\n".join(f"[{d.id}] {d.title}: {d.content[:200]}" for d in docs)
             ),
         )
-        text = response if isinstance(response, str) else response.get("text", "")
+        text = response if isinstance(response, str) else response.get("content", response.get("text", ""))
         try:
             scored = json.loads(text)
             scored.sort(key=lambda x: x.get("score", 0), reverse=True)
@@ -184,7 +184,7 @@ class BusinessAgentService:
         response = await ai_service.complete(
             prompt=f"Extract actionable recommendations from this text as a JSON array of strings:\n{text[:3000]}",
         )
-        t = response if isinstance(response, str) else response.get("text", "")
+        t = response if isinstance(response, str) else response.get("content", response.get("text", ""))
         try:
             return json.loads(t) if isinstance(t, str) else t
         except (json.JSONDecodeError, TypeError):
@@ -211,7 +211,7 @@ class BusinessAgentService:
         response = await ai_service.complete(
             prompt=f"Parse this business report into JSON with keys: summary, content, recommendations:\n{text[:5000]}",
         )
-        t = response if isinstance(response, str) else response.get("text", "")
+        t = response if isinstance(response, str) else response.get("content", response.get("text", ""))
         try:
             return json.loads(t)
         except (json.JSONDecodeError, TypeError):
@@ -259,7 +259,7 @@ class KnowledgeService:
                 + "\n".join(f"ID={d.id} TITLE={d.title} CONTENT={d.content[:300]}" for d in docs)
             ),
         )
-        text = response if isinstance(response, str) else response.get("text", "")
+        text = response if isinstance(response, str) else response.get("content", response.get("text", ""))
         try:
             scored = json.loads(text)
             scored.sort(key=lambda x: x.get("relevance_score", 0), reverse=True)
@@ -443,7 +443,7 @@ class FinancialAnalysisService:
                 + json.dumps([{"month": str(r.month), "type": r.record_type, "total": float(r.total)} for r in rows], default=str)
             ),
         )
-        text = response if isinstance(response, str) else response.get("text", "")
+        text = response if isinstance(response, str) else response.get("content", response.get("text", ""))
         try:
             return json.loads(text)
         except (json.JSONDecodeError, TypeError):
@@ -524,7 +524,7 @@ class BusinessWorkflowService:
         for k, v in context.items():
             prompt = prompt.replace(f"{{{{{k}}}}}", str(v))
         response = await ai_service.complete(prompt=prompt)
-        text = response if isinstance(response, str) else response.get("text", "")
+        text = response if isinstance(response, str) else response.get("content", response.get("text", ""))
         context[step.get("output_key", "ai_result")] = text
         return context
 

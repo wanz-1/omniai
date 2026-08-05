@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
@@ -298,7 +299,7 @@ async def complete_delegation(
     delegation.progress = 100.0
     delegation.output_data = output_data
     delegation.result_summary = result_summary
-    delegation.completed_at = __import__("datetime").datetime.utcnow()
+    delegation.completed_at = datetime.now(timezone.utc)
     await db.commit()
     return delegation
 

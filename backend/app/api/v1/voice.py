@@ -126,7 +126,7 @@ async def process_voice_message(
         system_prompt="You are a voice AI assistant. Respond conversationally and concisely.",
     )
 
-    response_text = ai_response.get("text", "") if isinstance(ai_response, dict) else ai_response
+    response_text = ai_response.get("content", ai_response.get("text", "")) if isinstance(ai_response, dict) else ai_response
     response_message = await svc.generate_voice_response(session_id, response_text)
 
     return {

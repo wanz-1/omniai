@@ -111,6 +111,57 @@ class TestAIService:
                 enable_retry=False,
             )
 
+    async def test_complete_with_string_prompt_returns_content(self, service):
+        mock_openai = AsyncMock(spec=OpenAIProvider)
+        mock_openai.name = "openai"
+        mock_openai.chat_completion = AsyncMock(return_value={
+            "content": "answer from model", "model": "gpt-4o", "tokens_used": 5,
+            "tokens_prompt": 2, "tokens_completion": 3,
+        })
+        service.providers = {"openai": mock_openai}
+
+        with patch("app.services.ai_service.track_ai_request"):
+            result = await service.complete("What is 2+2?", enable_retry=False)
+        assert result == "answer from model"
+        sent_messages = mock_openai.chat_completion.await_args.kwargs["messages"]
+        assert sent_messages == [{"role": "user", "content": "What is 2+2?"}]
+
+    async def test_complete_with_prompt_kwarg_and_system_prompt(self, service):
+        mock_openai = AsyncMock(spec=OpenAIProvider)
+        mock_openai.name = "openai"
+        mock_openai.chat_completion = AsyncMock(return_value={
+            "content": "ok", "model": "gpt-4o", "tokens_used": 1,
+            "tokens_prompt": 1, "tokens_completion": 0,
+        })
+        service.providers = {"openai": mock_openai}
+
+        with patch("app.services.ai_service.track_ai_request"):
+            result = await service.complete(
+                prompt="hi", system_prompt="Be brief.", enable_retry=False
+            )
+        assert result == "ok"
+        sent_messages = mock_openai.chat_completion.await_args.kwargs["messages"]
+        assert sent_messages == [
+            {"role": "system", "content": "Be brief."},
+            {"role": "user", "content": "hi"},
+        ]
+
+    async def test_complete_messages_list_keeps_dict_return(self, service):
+        mock_openai = AsyncMock(spec=OpenAIProvider)
+        mock_openai.name = "openai"
+        mock_openai.chat_completion = AsyncMock(return_value={
+            "content": "ok", "model": "gpt-4o", "tokens_used": 1,
+            "tokens_prompt": 1, "tokens_completion": 0,
+        })
+        service.providers = {"openai": mock_openai}
+
+        with patch("app.services.ai_service.track_ai_request"):
+            result = await service.complete(
+                messages=[{"role": "user", "content": "hi"}], enable_retry=False
+            )
+        assert isinstance(result, dict)
+        assert result["content"] == "ok"
+
 
 @pytest.mark.asyncio
 class TestRetryWithBackoff:

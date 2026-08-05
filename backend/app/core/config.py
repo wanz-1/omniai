@@ -86,7 +86,13 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def _enforce_secure_secrets(self):
-        if self.environment.lower() in ("production", "prod", "staging"):
+        env = self.environment.lower()
+        if env in ("production", "prod", "staging"):
+            if self.debug:
+                raise ValueError(
+                    "DEBUG must be False when environment is production/staging. "
+                    "Refusing to start with debug mode enabled. Set DEBUG=False in your environment configuration."
+                )
             if not self.jwt_secret:
                 raise ValueError(
                     "JWT_SECRET must be set to a strong, unique value when environment is production/staging. "

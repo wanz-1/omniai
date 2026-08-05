@@ -32,7 +32,7 @@ router = APIRouter()
 # ─── Regions ─────────────────────────────────────────────────────────────────
 
 @router.get("/regions", response_model=list[RegionResponse])
-async def list_regions(db: AsyncSession = Depends(get_db)):
+async def list_regions(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     mgr = InfraDeploymentManager(db)
     return await mgr.list_regions()
 
@@ -44,7 +44,7 @@ async def create_region(name: str, slug: str, provider: str, description: str | 
 
 
 @router.get("/regions/{region_id}", response_model=RegionResponse)
-async def get_region(region_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def get_region(region_id: uuid.UUID, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     mgr = InfraDeploymentManager(db)
     region = await mgr.get_region(region_id)
     if not region:
@@ -55,7 +55,7 @@ async def get_region(region_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
 # ─── Clusters ────────────────────────────────────────────────────────────────
 
 @router.get("/clusters", response_model=list[ClusterResponse])
-async def list_clusters(region_id: uuid.UUID | None = None, db: AsyncSession = Depends(get_db)):
+async def list_clusters(region_id: uuid.UUID | None = None, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     mgr = InfraDeploymentManager(db)
     return await mgr.list_clusters(region_id)
 
@@ -78,7 +78,7 @@ async def update_cluster_health(cluster_id: uuid.UUID, status: str, current_user
 # ─── Services ────────────────────────────────────────────────────────────────
 
 @router.get("/services", response_model=list[ServiceDeploymentResponse])
-async def list_services(cluster_id: uuid.UUID | None = None, db: AsyncSession = Depends(get_db)):
+async def list_services(cluster_id: uuid.UUID | None = None, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     mgr = InfraDeploymentManager(db)
     return await mgr.list_services(cluster_id)
 
@@ -101,7 +101,7 @@ async def scale_service(service_id: uuid.UUID, target_replicas: int, current_use
 # ─── Model Registry ──────────────────────────────────────────────────────────
 
 @router.get("/models", response_model=list[ModelRegistryResponse])
-async def list_models(model_type: str | None = None, provider: str | None = None, db: AsyncSession = Depends(get_db)):
+async def list_models(model_type: str | None = None, provider: str | None = None, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     engine = InfraScalingEngine(db)
     return await engine.list_models(model_type, provider)
 
@@ -113,7 +113,7 @@ async def register_model(name: str, provider: str, model_id: str, model_type: st
 
 
 @router.post("/models/route", response_model=ModelRouteResponse)
-async def route_model(req: ModelRouteRequest, db: AsyncSession = Depends(get_db)):
+async def route_model(req: ModelRouteRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     engine = InfraScalingEngine(db)
     return await engine.route_model(req.task, req.complexity, req.max_cost, req.preferred_provider, req.required_capabilities)
 
@@ -121,7 +121,7 @@ async def route_model(req: ModelRouteRequest, db: AsyncSession = Depends(get_db)
 # ─── Security ────────────────────────────────────────────────────────────────
 
 @router.get("/security/events", response_model=list[SecurityEventResponse])
-async def list_security_events(event_type: str | None = None, severity: str | None = None, resolved: bool | None = None, db: AsyncSession = Depends(get_db)):
+async def list_security_events(event_type: str | None = None, severity: str | None = None, resolved: bool | None = None, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     mgr = InfraSecurityManager(db)
     return await mgr.list_events(event_type, severity, resolved)
 
@@ -142,7 +142,7 @@ async def resolve_security_event(event_id: uuid.UUID, action_taken: str | None =
 
 
 @router.get("/security/summary")
-async def security_summary(db: AsyncSession = Depends(get_db)):
+async def security_summary(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     mgr = InfraSecurityManager(db)
     return await mgr.get_security_summary()
 
@@ -150,7 +150,7 @@ async def security_summary(db: AsyncSession = Depends(get_db)):
 # ─── Monitoring ──────────────────────────────────────────────────────────────
 
 @router.get("/monitoring/metrics", response_model=list[MonitoringMetricResponse])
-async def get_metrics(metric_name: str | None = None, metric_type: str | None = None, region_id: uuid.UUID | None = None, db: AsyncSession = Depends(get_db)):
+async def get_metrics(metric_name: str | None = None, metric_type: str | None = None, region_id: uuid.UUID | None = None, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     svc = InfraMonitoringService(db)
     return await svc.get_metrics(metric_name, metric_type, region_id)
 
@@ -163,13 +163,13 @@ async def record_metric(metric_name: str, metric_value: float, metric_type: str,
 
 
 @router.get("/monitoring/health")
-async def system_health(db: AsyncSession = Depends(get_db)):
+async def system_health(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     svc = InfraMonitoringService(db)
     return await svc.get_system_health()
 
 
 @router.get("/monitoring/uptime")
-async def api_uptime(days: int = 30, db: AsyncSession = Depends(get_db)):
+async def api_uptime(days: int = 30, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     svc = InfraMonitoringService(db)
     return await svc.get_api_uptime(days)
 
@@ -177,7 +177,7 @@ async def api_uptime(days: int = 30, db: AsyncSession = Depends(get_db)):
 # ─── Backups ─────────────────────────────────────────────────────────────────
 
 @router.get("/backups", response_model=list[BackupRecordResponse])
-async def list_backups(backup_type: str | None = None, status: str | None = None, db: AsyncSession = Depends(get_db)):
+async def list_backups(backup_type: str | None = None, status: str | None = None, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     svc = InfraBackupService(db)
     return await svc.list_backups(backup_type, status)
 
@@ -189,7 +189,7 @@ async def create_backup(name: str, backup_type: str, target: str, current_user: 
 
 
 @router.get("/backups/{backup_id}", response_model=BackupRecordResponse)
-async def get_backup(backup_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def get_backup(backup_id: uuid.UUID, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     svc = InfraBackupService(db)
     backup = await svc.get_backup(backup_id)
     if not backup:
@@ -207,7 +207,7 @@ async def complete_backup(backup_id: uuid.UUID, size_bytes: int, location: str, 
 
 
 @router.get("/backups/summary")
-async def backup_summary(db: AsyncSession = Depends(get_db)):
+async def backup_summary(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     svc = InfraBackupService(db)
     return await svc.get_backup_summary()
 
@@ -215,7 +215,7 @@ async def backup_summary(db: AsyncSession = Depends(get_db)):
 # ─── Compliance & Policies ───────────────────────────────────────────────────
 
 @router.get("/policies/{organization_id}", response_model=list[OrganizationPolicyResponse])
-async def list_policies(organization_id: uuid.UUID, policy_type: str | None = None, db: AsyncSession = Depends(get_db)):
+async def list_policies(organization_id: uuid.UUID, policy_type: str | None = None, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     engine = InfraComplianceEngine(db)
     return await engine.list_policies(organization_id, policy_type)
 
@@ -227,7 +227,7 @@ async def create_policy(organization_id: uuid.UUID, policy_type: str, name: str,
 
 
 @router.get("/compliance/reports", response_model=list[ComplianceReportResponse])
-async def list_reports(report_type: str | None = None, organization_id: uuid.UUID | None = None, db: AsyncSession = Depends(get_db)):
+async def list_reports(report_type: str | None = None, organization_id: uuid.UUID | None = None, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     engine = InfraComplianceEngine(db)
     return await engine.list_reports(report_type, organization_id)
 
@@ -256,7 +256,7 @@ async def configure_data_residency(organization_id: uuid.UUID, region_id: uuid.U
 
 
 @router.get("/data-residency/{organization_id}", response_model=list[DataResidencyResponse])
-async def list_data_residency(organization_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def list_data_residency(organization_id: uuid.UUID, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     engine = InfraComplianceEngine(db)
     return await engine.list_data_residency(organization_id)
 
@@ -281,7 +281,7 @@ async def create_api_key(organization_id: uuid.UUID, req: DeveloperApiKeyCreate,
 
 
 @router.get("/api-keys/{organization_id}", response_model=list[DeveloperApiKeyResponse])
-async def list_api_keys(organization_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def list_api_keys(organization_id: uuid.UUID, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     rows = await db.execute(
         select(DeveloperApiKey).where(DeveloperApiKey.organization_id == organization_id)
     )
@@ -301,7 +301,7 @@ async def delete_api_key(key_id: uuid.UUID, current_user: User = Depends(get_cur
 # ─── Dashboard ───────────────────────────────────────────────────────────────
 
 @router.get("/dashboard")
-async def infrastructure_dashboard(db: AsyncSession = Depends(get_db)):
+async def infrastructure_dashboard(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     region_count = (await db.execute(select(func.count(InfrastructureRegion.id)))).scalar() or 0
     cluster_count = (await db.execute(select(func.count(ClusterDeployment.id)))).scalar() or 0
     svc_count = (await db.execute(select(func.count(ServiceDeployment.id)))).scalar() or 0

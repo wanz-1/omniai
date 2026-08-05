@@ -26,6 +26,12 @@ from app.services.connector_platform.monitoring_service import MonitoringService
 router = APIRouter()
 
 
+def _ensure_org_access(integration, current_user: User) -> None:
+    org_id = current_user.organization_id or current_user.id
+    if integration.organization_id and str(integration.organization_id) != str(org_id):
+        raise HTTPException(status_code=404, detail="Integration not found")
+
+
 @router.get("/definitions", response_model=list[ConnectorDefinitionResponse])
 async def list_connector_definitions(
     category: str | None = None,
@@ -61,21 +67,28 @@ async def list_integrations(
 @router.get("/integrations/{integration_id}", response_model=ConnectorIntegrationResponse)
 async def get_integration(
     integration_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     mgr = ConnectorManager(db)
     integ = await mgr.get_integration(integration_id)
     if not integ:
         raise HTTPException(status_code=404, detail="Integration not found")
+    _ensure_org_access(integ, current_user)
     return integ
 
 
 @router.delete("/integrations/{integration_id}")
 async def uninstall_connector(
     integration_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     mgr = ConnectorManager(db)
+    integ = await mgr.get_integration(integration_id)
+    if not integ:
+        raise HTTPException(status_code=404, detail="Integration not found")
+    _ensure_org_access(integ, current_user)
     result = await mgr.uninstall_connector(integration_id)
     return {"status": "uninstalled" if result else "not_found"}
 
@@ -83,9 +96,14 @@ async def uninstall_connector(
 @router.post("/authenticate")
 async def authenticate_connector(
     req: AuthenticateConnectorRequest,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     auth = AuthenticationService(db)
+    integ = await ConnectorManager(db).get_integration(req.integration_id)
+    if not integ:
+        raise HTTPException(status_code=404, detail="Integration not found")
+    _ensure_org_access(integ, current_user)
     return await auth.authenticate(req.integration_id, req.auth_data)
 
 
@@ -93,9 +111,14 @@ async def authenticate_connector(
 async def get_oauth_authorization_url(
     integration_id: uuid.UUID,
     redirect_uri: str,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     auth = AuthenticationService(db)
+    integ = await ConnectorManager(db).get_integration(integration_id)
+    if not integ:
+        raise HTTPException(status_code=404, detail="Integration not found")
+    _ensure_org_access(integ, current_user)
     return await auth.get_authorization_url(integration_id, redirect_uri)
 
 
@@ -104,15 +127,21 @@ async def handle_oauth_callback(
     integration_id: uuid.UUID,
     code: str,
     state: str,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     auth = AuthenticationService(db)
+    integ = await ConnectorManager(db).get_integration(integration_id)
+    if not integ:
+        raise HTTPException(status_code=404, detail="Integration not found")
+    _ensure_org_access(integ, current_user)
     return await auth.handle_oauth_callback(integration_id, code, state)
 
 
 @router.post("/oauth/refresh/{credential_id}")
 async def refresh_oauth_token(
     credential_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     auth = AuthenticationService(db)
@@ -122,6 +151,7 @@ async def refresh_oauth_token(
 @router.post("/credentials/rotate/{credential_id}")
 async def rotate_credentials(
     credential_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     auth = AuthenticationService(db)
@@ -151,7 +181,11 @@ async def list_api_keys(
 
 
 @router.delete("/api-keys/{key_id}")
-async def revoke_api_key(key_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def revoke_api_key(
+    key_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
     auth = AuthenticationService(db)
     result = await auth.revoke_api_key(key_id)
     return {"status": "revoked" if result else "not_found"}
@@ -160,6 +194,7 @@ async def revoke_api_key(key_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
 @router.post("/sync", response_model=SyncJobResponse)
 async def start_sync(
     req: SyncConnectorRequest,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     engine = SyncEngine(db)
@@ -170,6 +205,7 @@ async def start_sync(
 async def complete_sync(
     job_id: uuid.UUID,
     stats: dict | None = None,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     engine = SyncEngine(db)
@@ -193,9 +229,14 @@ async def list_sync_jobs(
 @router.post("/sync/run/{integration_id}")
 async def run_sync(
     integration_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     engine = SyncEngine(db)
+    integ = await ConnectorManager(db).get_integration(integration_id)
+    if not integ:
+        raise HTTPException(status_code=404, detail="Integration not found")
+    _ensure_org_access(integ, current_user)
     return await engine.run_sync(integration_id)
 
 
@@ -211,9 +252,14 @@ async def get_sync_summary(
 @router.post("/webhooks/register")
 async def register_webhook(
     req: RegisterWebhookRequest,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     mgr = WebhookManager(db)
+    integ = await ConnectorManager(db).get_integration(req.integration_id)
+    if not integ:
+        raise HTTPException(status_code=404, detail="Integration not found")
+    _ensure_org_access(integ, current_user)
     return await mgr.register_webhook(req.integration_id, req.event_type, req.target_url, req.secret)
 
 
@@ -235,6 +281,7 @@ async def receive_webhook(
 @router.post("/webhooks/{event_id}/process")
 async def process_webhook_event(
     event_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     mgr = WebhookManager(db)
@@ -277,6 +324,7 @@ async def list_custom_connectors(
 @router.delete("/custom/{endpoint_id}")
 async def delete_custom_connector(
     endpoint_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     gw = ApiGateway(db)
@@ -289,6 +337,7 @@ async def execute_custom_api(
     endpoint_id: uuid.UUID,
     action: str,
     params: dict | None = None,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     gw = ApiGateway(db)
@@ -298,26 +347,43 @@ async def execute_custom_api(
 @router.post("/query")
 async def query_connector(
     req: ConnectorQueryRequest,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     mgr = ConnectorManager(db)
+    integ = await mgr.get_integration(req.integration_id)
+    if not integ:
+        raise HTTPException(status_code=404, detail="Integration not found")
+    _ensure_org_access(integ, current_user)
     return await mgr.query_connector(req.integration_id, req.action, req.params)
 
 
 @router.post("/sdk/generate")
-async def generate_connector_code(spec: dict, db: AsyncSession = Depends(get_db)):
+async def generate_connector_code(
+    spec: dict,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
     sdk = ConnectorSDK(db)
     return await sdk.generate_connector_code(spec)
 
 
 @router.post("/sdk/validate/{connector_id}")
-async def validate_connector(connector_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def validate_connector(
+    connector_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
     sdk = ConnectorSDK(db)
     return await sdk.validate_connector(connector_id)
 
 
 @router.post("/sdk/test/{integration_id}")
-async def test_connection(integration_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def test_connection(
+    integration_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
     sdk = ConnectorSDK(db)
     return await sdk.test_connection(integration_id)
 
@@ -326,6 +392,7 @@ async def test_connection(integration_id: uuid.UUID, db: AsyncSession = Depends(
 async def list_marketplace(
     category: str | None = None,
     search: str | None = None,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     marketplace = MarketplaceService(db)
@@ -333,7 +400,11 @@ async def list_marketplace(
 
 
 @router.get("/marketplace/{item_id}")
-async def get_marketplace_item(item_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def get_marketplace_item(
+    item_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
     marketplace = MarketplaceService(db)
     return await marketplace.get_marketplace_item(item_id)
 
@@ -371,14 +442,22 @@ async def grant_permission(
 
 
 @router.delete("/permissions/{permission_id}")
-async def revoke_permission(permission_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def revoke_permission(
+    permission_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
     mon = MonitoringService(db)
     result = await mon.revoke_permission(permission_id)
     return {"status": "revoked" if result else "not_found"}
 
 
 @router.get("/permissions/{integration_id}")
-async def list_permissions(integration_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def list_permissions(
+    integration_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
     mon = MonitoringService(db)
     return await mon.list_permissions(integration_id)
 

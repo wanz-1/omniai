@@ -105,7 +105,7 @@ async def test_install_list_get_uninstall(stateful_client):
     assert (await client.get(f"{PREFIX}/integrations/{integration['id']}")).status_code == 404
 
     again = await client.delete(f"{PREFIX}/integrations/{integration['id']}")
-    assert again.json()["status"] == "not_found"
+    assert again.status_code == 404
 
 
 @pytest.mark.integration
@@ -247,8 +247,7 @@ async def test_sync_run_without_credentials_returns_error(stateful_client):
 async def test_sync_run_unknown_integration(stateful_client):
     client, _db = stateful_client
     resp = await client.post(f"{PREFIX}/sync/run/{'00000000-0000-0000-0000-000000000000'}")
-    assert resp.status_code == 200
-    assert resp.json() == {"error": "Integration not found"}
+    assert resp.status_code == 404
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -377,8 +376,7 @@ async def test_webhook_register_unknown_integration(stateful_client):
         "target_url": "https://example.com/hook",
         "secret": None,
     })
-    assert resp.status_code == 200
-    assert resp.json()["error"] == "Integration not found"
+    assert resp.status_code == 404
 
 
 @pytest.mark.integration

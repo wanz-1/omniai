@@ -80,6 +80,53 @@ def test_version_consistency_between_settings_and_openapi():
 
 
 @pytest.mark.unit
+def test_debug_guardrail_blocks_production_with_debug():
+    from app.core.config import Settings
+
+    with pytest.raises(ValueError, match="DEBUG must be False"):
+        Settings(
+            _env_file=None,
+            environment="production",
+            debug=True,
+            jwt_secret="x" * 32,
+        )
+
+
+@pytest.mark.unit
+def test_debug_guardrail_blocks_staging_with_debug():
+    from app.core.config import Settings
+
+    with pytest.raises(ValueError, match="DEBUG must be False"):
+        Settings(
+            _env_file=None,
+            environment="staging",
+            debug=True,
+            jwt_secret="x" * 32,
+        )
+
+
+@pytest.mark.unit
+def test_debug_guardrail_allows_development_with_debug():
+    from app.core.config import Settings
+
+    s = Settings(_env_file=None, environment="development", debug=True)
+    assert s.debug is True
+
+
+@pytest.mark.unit
+def test_debug_guardrail_allows_production_without_debug():
+    from app.core.config import Settings
+
+    s = Settings(
+        _env_file=None,
+        environment="production",
+        debug=False,
+        jwt_secret="x" * 32,
+    )
+    assert s.environment == "production"
+
+
+@pytest.mark.unit
 def test_observability_endpoints_registered():
     paths = {getattr(route, "path", None) for route in app.routes}
     assert "/health" in paths

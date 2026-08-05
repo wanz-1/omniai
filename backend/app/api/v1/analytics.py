@@ -7,8 +7,9 @@ from sqlalchemy import select, func, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, get_db
+from app.core.constants import OrganizationPlan
 from app.models.agent import AgentProfile, AgentAnalytics
-from app.models.organization import Organization, OrganizationMember, OrganizationPlan
+from app.models.organization import Organization, OrganizationMember
 from app.models.subscription import Invoice, Subscription
 from app.models.usage import UsageLog
 from app.models.user import User

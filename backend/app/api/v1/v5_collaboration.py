@@ -52,19 +52,19 @@ async def list_sessions(
 
 
 @router.get("/sessions/{session_id}", response_model=CollaborationSessionResponse)
-async def get_session(session_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def get_session(session_id: uuid.UUID, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     mgr = SessionManager(db)
     return await mgr.get_session(session_id)
 
 
 @router.post("/sessions/{session_id}/start", response_model=CollaborationSessionResponse)
-async def start_session(session_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def start_session(session_id: uuid.UUID, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     mgr = SessionManager(db)
     return await mgr.start_session(session_id)
 
 
 @router.post("/sessions/{session_id}/end", response_model=CollaborationSessionResponse)
-async def end_session(session_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def end_session(session_id: uuid.UUID, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     mgr = SessionManager(db)
     return await mgr.end_session(session_id)
 
@@ -92,7 +92,7 @@ async def leave_session(
 
 
 @router.get("/sessions/{session_id}/participants", response_model=list[SessionParticipantResponse])
-async def get_participants(session_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def get_participants(session_id: uuid.UUID, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     mgr = SessionManager(db)
     return await mgr.get_participants(session_id)
 
@@ -112,7 +112,7 @@ async def send_message(
 
 
 @router.get("/sessions/{session_id}/messages", response_model=list[MultimodalMessageResponse])
-async def get_messages(session_id: uuid.UUID, limit: int = 100, db: AsyncSession = Depends(get_db)):
+async def get_messages(session_id: uuid.UUID, limit: int = 100, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     mgr = SessionManager(db)
     return await mgr.get_messages(session_id, limit)
 
@@ -128,7 +128,7 @@ async def create_whiteboard(
 
 
 @router.get("/whiteboards/{whiteboard_id}", response_model=WhiteboardSessionResponse)
-async def get_whiteboard(whiteboard_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def get_whiteboard(whiteboard_id: uuid.UUID, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     svc = WhiteboardService(db)
     return await svc.get(whiteboard_id)
 
@@ -137,6 +137,7 @@ async def get_whiteboard(whiteboard_id: uuid.UUID, db: AsyncSession = Depends(ge
 async def update_whiteboard(
     whiteboard_id: uuid.UUID,
     req: UpdateWhiteboardRequest,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     svc = WhiteboardService(db)
@@ -144,20 +145,20 @@ async def update_whiteboard(
 
 
 @router.get("/sessions/{session_id}/whiteboards", response_model=list[WhiteboardSessionResponse])
-async def list_whiteboards(session_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def list_whiteboards(session_id: uuid.UUID, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     svc = WhiteboardService(db)
     return await svc.list_by_session(session_id)
 
 
 @router.post("/whiteboards/{whiteboard_id}/lock")
-async def lock_whiteboard(whiteboard_id: uuid.UUID, locked: bool = True, db: AsyncSession = Depends(get_db)):
+async def lock_whiteboard(whiteboard_id: uuid.UUID, locked: bool = True, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     svc = WhiteboardService(db)
     result = await svc.lock(whiteboard_id, locked)
     return {"status": "locked" if result else "not_found"}
 
 
 @router.post("/whiteboards/{whiteboard_id}/ai-suggest")
-async def ai_whiteboard_suggest(whiteboard_id: uuid.UUID, prompt: str, db: AsyncSession = Depends(get_db)):
+async def ai_whiteboard_suggest(whiteboard_id: uuid.UUID, prompt: str, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     svc = WhiteboardService(db)
     result = await svc.ai_suggest(whiteboard_id, prompt)
     return {"suggestion": result}
@@ -174,13 +175,13 @@ async def generate_insights(
 
 
 @router.get("/sessions/{session_id}/insights", response_model=AIMeetingInsightResponse)
-async def get_insights(session_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def get_insights(session_id: uuid.UUID, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     svc = MeetingIntelligenceService(db)
     return await svc.get_insights(session_id)
 
 
 @router.post("/recordings/start", response_model=SessionRecordingResponse)
-async def start_recording(session_id: uuid.UUID, recording_type: str = "video", db: AsyncSession = Depends(get_db)):
+async def start_recording(session_id: uuid.UUID, recording_type: str = "video", current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     svc = RecordingService(db)
     return await svc.start_recording(session_id, recording_type)
 
@@ -191,6 +192,7 @@ async def stop_recording(
     file_url: str | None = None,
     duration: float | None = None,
     file_size: int | None = None,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     svc = RecordingService(db)
@@ -198,14 +200,14 @@ async def stop_recording(
 
 
 @router.post("/recordings/{recording_id}/transcribe")
-async def transcribe_recording(recording_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def transcribe_recording(recording_id: uuid.UUID, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     svc = RecordingService(db)
     transcript = await svc.transcribe(recording_id)
     return {"transcript": transcript}
 
 
 @router.get("/sessions/{session_id}/recordings", response_model=list[SessionRecordingResponse])
-async def list_recordings(session_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def list_recordings(session_id: uuid.UUID, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     svc = RecordingService(db)
     return await svc.list_by_session(session_id)
 
@@ -222,13 +224,13 @@ async def start_screen_share(
 
 
 @router.post("/screen-share/{share_id}/stop", response_model=ScreenShareSessionResponse)
-async def stop_screen_share(share_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def stop_screen_share(share_id: uuid.UUID, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     svc = ScreenShareService(db)
     return await svc.stop(share_id)
 
 
 @router.get("/sessions/{session_id}/screen-shares", response_model=list[ScreenShareSessionResponse])
-async def list_screen_shares(session_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def list_screen_shares(session_id: uuid.UUID, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     svc = ScreenShareService(db)
     return await svc.get_by_session(session_id)
 
@@ -256,7 +258,7 @@ async def list_collaboration_agents(
 
 
 @router.post("/agents/join")
-async def join_agent_to_session(req: JoinAgentRequest, db: AsyncSession = Depends(get_db)):
+async def join_agent_to_session(req: JoinAgentRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     svc = CollaborationAgentService(db)
     link = await svc.join_session(req.agent_id, req.session_id, req.role)
     return {"status": "joined", "link_id": str(link.id)}
@@ -265,6 +267,7 @@ async def join_agent_to_session(req: JoinAgentRequest, db: AsyncSession = Depend
 @router.post("/agents/{agent_id}/chat")
 async def chat_with_agent(
     agent_id: uuid.UUID, session_id: uuid.UUID, message: str,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     svc = CollaborationAgentService(db)
@@ -275,6 +278,7 @@ async def chat_with_agent(
 @router.post("/documents", response_model=DocumentCollaborationResponse)
 async def create_document_collab(
     session_id: uuid.UUID, document_id: uuid.UUID, document_type: str, title: str,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     svc = DocumentCollaborationService(db)
@@ -282,7 +286,7 @@ async def create_document_collab(
 
 
 @router.patch("/documents/{doc_id}", response_model=DocumentCollaborationResponse)
-async def update_document_collab(doc_id: uuid.UUID, content: dict, db: AsyncSession = Depends(get_db)):
+async def update_document_collab(doc_id: uuid.UUID, content: dict, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     svc = DocumentCollaborationService(db)
     return await svc.update_content(doc_id, content)
 
@@ -295,27 +299,27 @@ async def lock_document(doc_id: uuid.UUID, current_user: User = Depends(get_curr
 
 
 @router.post("/documents/{doc_id}/unlock")
-async def unlock_document(doc_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def unlock_document(doc_id: uuid.UUID, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     svc = DocumentCollaborationService(db)
     result = await svc.unlock(doc_id)
     return {"status": "unlocked" if result else "not_found"}
 
 
 @router.get("/sessions/{session_id}/documents", response_model=list[DocumentCollaborationResponse])
-async def list_document_collabs(session_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def list_document_collabs(session_id: uuid.UUID, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     svc = DocumentCollaborationService(db)
     return await svc.list_by_session(session_id)
 
 
 @router.post("/documents/{doc_id}/ai-edit")
-async def ai_edit_document(doc_id: uuid.UUID, instruction: str, db: AsyncSession = Depends(get_db)):
+async def ai_edit_document(doc_id: uuid.UUID, instruction: str, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     svc = DocumentCollaborationService(db)
     result = await svc.ai_edit(doc_id, instruction)
     return {"result": result}
 
 
 @router.get("/sessions/{session_id}/presence")
-async def get_presence(session_id: uuid.UUID, db: AsyncSession = Depends(get_db)):
+async def get_presence(session_id: uuid.UUID, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     svc = RealtimeService(db)
     return {"participants": await svc.get_presence(session_id)}
 
@@ -336,6 +340,7 @@ async def get_recent_activity(
     session_id: uuid.UUID,
     since: str | None = None,
     limit: int = 50,
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     svc = RealtimeService(db)

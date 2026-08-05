@@ -50,7 +50,6 @@ async def run_simulation(req: RunSimulationRequest, current_user: User = Depends
 
 @router.get("/simulations/{simulation_id}/results")
 async def get_simulation_results(simulation_id: uuid.UUID, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    sim = await db.get(Simulation, simulation_id) if False else None
     from app.models.v5_simulation import Simulation
     sim = await db.get(Simulation, simulation_id)
     if not sim: return {"error": "not_found"}

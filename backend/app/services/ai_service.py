@@ -22,6 +22,27 @@ def estimate_tokens(text: str) -> int:
     return len(text) // 4
 
 
+def normalize_messages(
+    messages: Any,
+    prompt: Optional[str] = None,
+    system_prompt: Optional[str] = None,
+) -> list[dict[str, str]]:
+    if messages is None:
+        messages = prompt
+    if isinstance(messages, str):
+        normalized = []
+        if system_prompt:
+            normalized.append({"role": "system", "content": system_prompt})
+        normalized.append({"role": "user", "content": messages})
+        return normalized
+    if isinstance(messages, (list, tuple)):
+        normalized = list(messages)
+        if system_prompt and not any(m.get("role") == "system" for m in normalized):
+            normalized.insert(0, {"role": "system", "content": system_prompt})
+        return normalized
+    raise TypeError("messages must be a string or a list of message dicts")
+
+
 async def retry_with_backoff(
     fn,
     max_retries: int = 3,
@@ -65,7 +86,7 @@ class AIProvider(ABC):
         temperature: float = 0.7,
         max_tokens: int = 4096,
     ) -> dict[str, Any] | AsyncGenerator[str, None]:
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     async def embeddings(
@@ -73,12 +94,12 @@ class AIProvider(ABC):
         texts: list[str],
         model: Optional[str] = None,
     ) -> list[list[float]]:
-        pass
+        raise NotImplementedError
 
     @property
     @abstractmethod
     def name(self) -> str:
-        pass
+        raise NotImplementedError
 
 
 class OpenAIProvider(AIProvider):
@@ -446,7 +467,7 @@ class AIService:
 
     async def complete(
         self,
-        messages: list[dict[str, str]],
+        messages: Any = None,
         model: Optional[str] = None,
         stream: bool = False,
         temperature: float = 0.7,
@@ -455,7 +476,11 @@ class AIService:
         user_id: str = "",
         enable_metrics: bool = True,
         enable_retry: bool = True,
+        prompt: Optional[str] = None,
+        system_prompt: Optional[str] = None,
     ):
+        string_input = prompt is not None or isinstance(messages, str)
+        messages = normalize_messages(messages, prompt=prompt, system_prompt=system_prompt)
         providers = self._get_provider_fallback_chain(provider)
         if not providers:
             raise AIServiceError(detail="No AI provider configured. Set at least one API key.")
@@ -490,6 +515,9 @@ class AIService:
                         tokens_completion=result.get("tokens_completion", 0),
                     )
 
+                if string_input and isinstance(result, dict):
+                    return result.get("content", "")
+
                 return result
 
             except (ProviderOverloadedError, ProviderRateLimitError, ConnectionError, TimeoutError) as e:
@@ -518,15 +546,19 @@ class AIService:
         detail = f"All AI providers failed: {last_error}" if last_error else "All AI providers failed"
         raise AIServiceError(detail=detail)
 
-    async def complete_stream(        self,
-        messages: list[dict[str, str]],
+    async def complete_stream(
+        self,
+        messages: Any = None,
         model: Optional[str] = None,
         temperature: float = 0.7,
         max_tokens: int = 4096,
         provider: Optional[str] = None,
         user_id: str = "",
         enable_metrics: bool = True,
+        prompt: Optional[str] = None,
+        system_prompt: Optional[str] = None,
     ) -> AsyncGenerator[str, None]:
+        messages = normalize_messages(messages, prompt=prompt, system_prompt=system_prompt)
         providers = self._get_provider_fallback_chain(provider)
         if not providers:
             raise AIServiceError(detail="No AI provider configured. Set at least one API key.")
@@ -573,16 +605,20 @@ class AIService:
 
     async def complete_with_guard(
         self,
-        messages: list[dict[str, str]],
+        messages: Any = None,
         model: Optional[str] = None,
         temperature: float = 0.7,
         max_tokens: int = 4096,
         provider: Optional[str] = None,
         user_id: str = "",
         organization_id: str = "",
+        prompt: Optional[str] = None,
+        system_prompt: Optional[str] = None,
     ):
         from app.services.ai_security.prompt_guard import prompt_guard
 
+        string_input = prompt is not None or isinstance(messages, str)
+        messages = normalize_messages(messages, prompt=prompt, system_prompt=system_prompt)
         input_text = " ".join(m.get("content", "") for m in messages if m.get("content"))
         guard_result = await prompt_guard.check_input(
             text=input_text,
@@ -616,6 +652,9 @@ class AIService:
                 )
             if output_guard.validated_output:
                 result["content"] = output_guard.validated_output
+
+        if string_input and isinstance(result, dict):
+            return result.get("content", "")
 
         return result
 
