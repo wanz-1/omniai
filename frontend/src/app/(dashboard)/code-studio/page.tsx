@@ -265,9 +265,9 @@ function GenerateTab({ orgId, onCreated }: { orgId: string | null; onCreated: (p
               <p className="text-sm">Describe your app idea on the left</p>
               <div className="mt-4 space-y-2 text-xs">
                 <p className="font-medium">Examples:</p>
-                <p>"A school management system with student registration and attendance"</p>
-                <p>"An e-commerce platform with cart, checkout, and admin panel"</p>
-                <p>"A task management app with real-time collaboration"</p>
+                <p>&ldquo;A school management system with student registration and attendance&rdquo;</p>
+                <p>&ldquo;An e-commerce platform with cart, checkout, and admin panel&rdquo;</p>
+                <p>&ldquo;A task management app with real-time collaboration&rdquo;</p>
               </div>
             </div>
           )}

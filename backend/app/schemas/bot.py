@@ -111,6 +111,7 @@ class BotAnalyticsResponse(BaseModel):
     top_intents: Optional[list[dict]] = None
     active_users_today: int = 0
     resolution_rate: float = 0.0
+    daily_activity: Optional[list[dict]] = None
 
 
 class BotEmbedRequest(BaseModel):

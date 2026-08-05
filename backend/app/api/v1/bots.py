@@ -1,5 +1,6 @@
 import json
 import uuid
+from datetime import datetime, timedelta, timezone
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
@@ -250,7 +251,46 @@ async def get_bot_analytics(
     return BotAnalyticsResponse(
         total_conversations=conv_count.scalar() or 0,
         total_messages=msg_count.scalar() or 0,
+        daily_activity=await _bot_daily_activity(db, bot_id),
     )
+
+
+async def _bot_daily_activity(db: AsyncSession, bot_id: uuid.UUID, days: int = 14) -> list[dict]:
+    """Bucket conversation/message counts per day for the last ``days`` days."""
+    today = datetime.now(timezone.utc).date()
+    cutoff = datetime.combine(today - timedelta(days=days - 1), datetime.min.time(), tzinfo=timezone.utc)
+    conv_rows = await db.execute(
+        select(BotConversation.created_at).where(
+            BotConversation.bot_id == bot_id,
+            BotConversation.created_at >= cutoff,
+        )
+    )
+    msg_rows = await db.execute(
+        select(BotMessage.created_at)
+        .join(BotConversation, BotMessage.conversation_id == BotConversation.id)
+        .where(
+            BotConversation.bot_id == bot_id,
+            BotMessage.created_at >= cutoff,
+        )
+    )
+    conv_by_day: dict[str, int] = {}
+    msg_by_day: dict[str, int] = {}
+    for (created_at,) in conv_rows.all():
+        key = created_at.date().isoformat() if created_at is not None else None
+        if key:
+            conv_by_day[key] = conv_by_day.get(key, 0) + 1
+    for (created_at,) in msg_rows.all():
+        key = created_at.date().isoformat() if created_at is not None else None
+        if key:
+            msg_by_day[key] = msg_by_day.get(key, 0) + 1
+    return [
+        {
+            "date": (today - timedelta(days=offset)).isoformat(),
+            "conversations": conv_by_day.get((today - timedelta(days=offset)).isoformat(), 0),
+            "messages": msg_by_day.get((today - timedelta(days=offset)).isoformat(), 0),
+        }
+        for offset in range(days - 1, -1, -1)
+    ]
 
 
 @router.get("/{bot_id}/conversations", response_model=list[BotConversationResponse])

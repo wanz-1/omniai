@@ -550,7 +550,7 @@ function DevelopersTab({ orgId }: { orgId: string | null }) {
       {newKey && (
         <Card className="border-primary/30">
           <CardContent className="pt-4">
-            <p className="text-sm font-medium">Your API Key (copy now — won't be shown again):</p>
+            <p className="text-sm font-medium">Your API Key (copy now &mdash; won&apos;t be shown again):</p>
             <code className="block bg-muted p-2 rounded mt-1 text-sm break-all">{newKey}</code>
           </CardContent>
         </Card>

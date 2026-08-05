@@ -383,7 +383,7 @@ function ReasoningTab() {
             {answer.citations?.length > 0 && <div>
               <p className="text-xs font-medium text-muted-foreground mb-2">Sources</p>
               {answer.citations.map((c: any, i: number) => (
-                <div key={i} className="border-l-2 border-indigo-500 pl-3 py-1 mb-1"><p className="text-xs"><span className="font-medium">{c.document_title}</span></p><p className="text-xs text-muted-foreground">"{c.cited_text}"</p></div>
+                <div key={i} className="border-l-2 border-indigo-500 pl-3 py-1 mb-1"><p className="text-xs"><span className="font-medium">{c.document_title}</span></p><p className="text-xs text-muted-foreground">&ldquo;{c.cited_text}&rdquo;</p></div>
               ))}
             </div>}
           </div>

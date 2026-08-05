@@ -6,6 +6,7 @@ conversation/analytics flows. The AI provider is mocked via
 ``ai_service.complete`` / ``complete_stream``.
 """
 import uuid
+from datetime import datetime, timezone
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -247,6 +248,13 @@ async def test_conversation_messages_and_analytics(auth_client):
     analytics = (await client.get(f"/api/v1/bots/{bot_id}/analytics")).json()
     assert analytics["total_conversations"] == 2
     assert isinstance(analytics["total_messages"], int)
+    assert isinstance(analytics["daily_activity"], list) and len(analytics["daily_activity"]) == 14
+    activity_today = next(
+        (d for d in analytics["daily_activity"] if d["date"] == datetime.now(timezone.utc).date().isoformat()), None
+    )
+    assert activity_today is not None
+    assert activity_today["conversations"] == 2
+    assert activity_today["messages"] == 2
 
 
 @pytest.mark.integration

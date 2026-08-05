@@ -174,7 +174,7 @@ export function AgentCreationWizard({ onComplete, onCancel, isCreating }: AgentC
               placeholder={`You are a ${form.role || "helpful assistant"}. You help users with their tasks by breaking down problems, using available tools, and delivering high-quality results.`}
             />
             <p className="text-xs text-muted-foreground mt-1">
-              The system prompt defines your agent's personality, constraints, and behavior.
+              The system prompt defines your agent&apos;s personality, constraints, and behavior.
             </p>
           </div>
           <div className="grid grid-cols-2 gap-4">

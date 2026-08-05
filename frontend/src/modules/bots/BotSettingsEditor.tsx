@@ -67,7 +67,7 @@ export function BotSettingsEditor({
             Bot Settings
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Configure your bot's personality and behavior
+            Configure your bot&apos;s personality and behavior
           </p>
         </div>
         <Button size="sm" onClick={onSave} isLoading={isSaving}>

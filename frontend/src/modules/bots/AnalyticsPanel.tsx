@@ -2,6 +2,16 @@
 
 import { useEffect, useState } from "react";
 import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+  Legend,
+} from "recharts";
+import {
   BarChart3,
   MessageSquare,
   Users,
@@ -24,6 +34,7 @@ interface Analytics {
   top_intents?: { intent: string; count: number }[];
   active_users_today: number;
   resolution_rate: number;
+  daily_activity?: { date: string; conversations: number; messages: number }[];
 }
 
 interface AnalyticsPanelProps {
@@ -168,9 +179,31 @@ export function AnalyticsPanel({ botId, className }: AnalyticsPanelProps) {
               <TrendingUp className="w-4 h-4 text-muted-foreground" />
               <h3 className="text-sm font-medium">Activity Overview</h3>
             </div>
-            <div className="flex items-center justify-center h-32 text-muted-foreground">
-              <p className="text-xs">Activity chart coming soon</p>
-            </div>
+            {analytics?.daily_activity && analytics.daily_activity.some((d) => d.conversations > 0 || d.messages > 0) ? (
+              <div className="h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={analytics.daily_activity} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.1} />
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fontSize: 10 }}
+                      tickFormatter={(d: string) => d.slice(5)}
+                      stroke="currentColor"
+                      opacity={0.6}
+                    />
+                    <YAxis tick={{ fontSize: 10 }} allowDecimals={false} stroke="currentColor" opacity={0.6} />
+                    <Tooltip contentStyle={{ fontSize: 12 }} labelFormatter={(label: string) => label} />
+                    <Legend wrapperStyle={{ fontSize: 12 }} />
+                    <Bar dataKey="conversations" name="Conversations" fill="#3b82f6" radius={[3, 3, 0, 0]} />
+                    <Bar dataKey="messages" name="Messages" fill="#8b5cf6" radius={[3, 3, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-32 text-muted-foreground">
+                <p className="text-xs">No activity in the last 14 days</p>
+              </div>
+            )}
           </div>
         </>
       )}

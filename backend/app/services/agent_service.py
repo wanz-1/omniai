@@ -3,7 +3,7 @@ import json
 import logging
 import time
 import uuid
-from datetime import timezone
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import AsyncGenerator
 
@@ -734,4 +734,8 @@ class AgentOrchestrator:
                 analytics.avg_duration_ms = (analytics.avg_duration_ms * (analytics.total_tasks - 1) + duration_ms) / analytics.total_tasks
             else:
                 analytics.avg_duration_ms = float(duration_ms)
+            today = datetime.now(timezone.utc).date().isoformat()
+            usage = analytics.daily_usage or {}
+            usage[today] = usage.get(today, 0) + 1
+            analytics.daily_usage = usage
             await self.db.flush()

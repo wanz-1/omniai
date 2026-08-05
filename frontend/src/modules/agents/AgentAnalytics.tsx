@@ -1,5 +1,17 @@
 "use client";
 
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { BarChart3, CheckCircle, XCircle, Zap, Clock, ThumbsUp, TrendingUp, Target, Brain } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +31,13 @@ interface AgentAnalyticsProps {
   className?: string;
 }
 
+function dailyUsageSeries(daily_usage?: Record<string, number>) {
+  if (!daily_usage) return [];
+  return Object.entries(daily_usage)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, count]) => ({ date, tasks: count }));
+}
+
 export function AgentAnalyticsPanel({ analytics, className }: AgentAnalyticsProps) {
   const stats = [
     { label: "Total Tasks", value: analytics?.total_tasks ?? 0, icon: BarChart3, color: "text-blue-500 bg-blue-50 dark:bg-blue-950" },
@@ -28,6 +47,14 @@ export function AgentAnalyticsPanel({ analytics, className }: AgentAnalyticsProp
     { label: "Avg Duration", value: analytics?.avg_duration_ms ? `${(analytics.avg_duration_ms / 1000).toFixed(1)}s` : "N/A", icon: Clock, color: "text-amber-500 bg-amber-50 dark:bg-amber-950" },
     { label: "Satisfaction", value: analytics?.avg_satisfaction != null ? `${(analytics.avg_satisfaction * 100).toFixed(0)}%` : "N/A", icon: ThumbsUp, color: "text-emerald-500 bg-emerald-50 dark:bg-emerald-950" },
   ];
+
+  const usage = dailyUsageSeries(analytics?.daily_usage);
+  const hasUsage = usage.some((d) => d.tasks > 0);
+  const taskBreakdown = [
+    { name: "Completed", value: analytics?.completed_tasks ?? 0 },
+    { name: "Failed", value: analytics?.failed_tasks ?? 0 },
+  ];
+  const hasTasks = (analytics?.total_tasks ?? 0) > 0;
 
   return (
     <div className={cn("space-y-4", className)}>
@@ -73,12 +100,52 @@ export function AgentAnalyticsPanel({ analytics, className }: AgentAnalyticsProp
 
       <div className="p-4 rounded-xl border border-border bg-card">
         <div className="flex items-center gap-2 mb-3">
-          <TrendingUp className="w-4 h-4 text-muted-foreground" />
+          <Brain className="w-4 h-4 text-muted-foreground" />
           <h3 className="text-sm font-medium">Agent Performance</h3>
         </div>
-        <div className="flex items-center justify-center h-24 text-muted-foreground">
-          <p className="text-xs">Performance charts coming soon</p>
-        </div>
+        {hasUsage ? (
+          <div className="h-44">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={usage} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="taskFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.35} />
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.1} />
+                <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={(d: string) => d.slice(5)} stroke="currentColor" opacity={0.6} />
+                <YAxis tick={{ fontSize: 10 }} allowDecimals={false} stroke="currentColor" opacity={0.6} />
+                <Tooltip contentStyle={{ fontSize: 12 }} />
+                <Area type="monotone" dataKey="tasks" name="Tasks" stroke="#3b82f6" strokeWidth={2} fill="url(#taskFill)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <div className="flex items-center justify-center h-24 text-muted-foreground">
+            <p className="text-xs">No task activity recorded yet</p>
+          </div>
+        )}
+        {hasTasks && (
+          <div className="mt-3">
+            <div className="flex items-center gap-2 mb-2">
+              <TrendingUp className="w-3.5 h-3.5 text-muted-foreground" />
+              <h4 className="text-xs font-medium">Task Outcomes</h4>
+            </div>
+            <div className="h-32">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={taskBreakdown} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.1} />
+                  <XAxis dataKey="name" tick={{ fontSize: 11 }} stroke="currentColor" opacity={0.6} />
+                  <YAxis tick={{ fontSize: 10 }} allowDecimals={false} stroke="currentColor" opacity={0.6} />
+                  <Tooltip contentStyle={{ fontSize: 12 }} />
+                  <Legend wrapperStyle={{ fontSize: 12 }} />
+                  <Bar dataKey="value" name="Tasks" fill="#10b981" radius={[3, 3, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

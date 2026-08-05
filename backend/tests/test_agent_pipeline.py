@@ -173,6 +173,8 @@ async def test_chat_runs_orchestrator_and_persists(stateful_client):
     assert analytics["completed_tasks"] == 1
     assert analytics["total_tokens"] == 120
     assert analytics["avg_duration_ms"] is not None
+    assert analytics["daily_usage"]
+    assert sum(analytics["daily_usage"].values()) >= 1
 
 
 @pytest.mark.integration
