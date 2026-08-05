@@ -1,5 +1,4 @@
 import uuid
-import io
 import tempfile
 from pathlib import Path
 from typing import AsyncGenerator
@@ -10,7 +9,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.core.exceptions import AppError
 from app.models.media import VoiceSession, VoiceMessage
-from app.services.ai_service import ai_service
 
 
 class VoiceService:

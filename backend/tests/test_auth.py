@@ -9,7 +9,6 @@ import pytest
 from httpx import AsyncClient
 
 from app.models.user import User
-from tests.fake_session import FakeSession
 
 
 @pytest.mark.asyncio

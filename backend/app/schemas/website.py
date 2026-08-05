@@ -4,7 +4,7 @@ from typing import Optional
 
 from pydantic import BaseModel, Field
 
-from app.core.constants import DeploymentStatus, WebsiteFramework, WebsiteStyling
+from app.core.constants import WebsiteFramework, WebsiteStyling
 
 
 class WebsiteCreateRequest(BaseModel):

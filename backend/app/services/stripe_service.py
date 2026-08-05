@@ -8,7 +8,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.core.constants import SubscriptionInterval, SubscriptionStatus
 from app.core.exceptions import AppError
-from app.models.organization import Organization
 from app.models.subscription import Invoice, Subscription, SubscriptionPlan
 
 try:
@@ -50,18 +49,19 @@ async def create_stripe_portal_session(organization_id: uuid.UUID, return_url: s
     if not STRIPE_AVAILABLE:
         return {"url": return_url}
 
-    sub_result = await _get_db_session().execute(
-        select(Subscription).where(Subscription.organization_id == organization_id)
-    )
-    sub = sub_result.scalar_one_or_none()
-    if not sub or not sub.stripe_customer_id:
-        raise AppError(detail="No Stripe customer found for this organization")
+    async with _session() as db:
+        sub_result = await db.execute(
+            select(Subscription).where(Subscription.organization_id == organization_id)
+        )
+        sub = sub_result.scalar_one_or_none()
+        if not sub or not sub.stripe_customer_id:
+            raise AppError(detail="No Stripe customer found for this organization")
 
-    session = stripe.billing_portal.Session.create(
-        customer=sub.stripe_customer_id,
-        return_url=return_url,
-    )
-    return {"url": session.url}
+        session = stripe.billing_portal.Session.create(
+            customer=sub.stripe_customer_id,
+            return_url=return_url,
+        )
+        return {"url": session.url}
 
 
 async def handle_stripe_webhook(payload: bytes, sig_header: str) -> dict:

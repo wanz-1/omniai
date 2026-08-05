@@ -2,7 +2,7 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.v5_collaboration import (
-    CollaborationSession, CollaborationAgent, AgentSessionLink, MultimodalMessage,
+    CollaborationAgent, AgentSessionLink, MultimodalMessage,
 )
 from app.services.ai_service import ai_service
 

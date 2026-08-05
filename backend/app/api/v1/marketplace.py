@@ -5,11 +5,10 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.dependencies import get_current_user, get_db, get_optional_user
+from app.core.dependencies import get_current_user, get_db
 from app.core.exceptions import NotFoundError, ForbiddenError
 from app.models.marketplace import MarketplaceItem, MarketplacePurchase
 from app.models.user import User
-from app.schemas.common import MessageResponse
 from app.schemas.marketplace import (
     MarketplaceItemCreateRequest,
     MarketplaceItemResponse,

@@ -20,7 +20,6 @@ from app.core.security import (
 )
 from app.core.dependencies import get_current_user
 from app.models.api_key import ApiKey
-from app.models.session import UserSession
 from app.models.user import OAuthAccount, User
 
 PASSWORD = "TestPassword123!"
@@ -164,7 +163,6 @@ async def test_oauth_links_provider_to_existing_user_by_email(stateful_client):
 async def test_oauth_token_exchange_failure_returns_401(stateful_client):
     client, _db = stateful_client
     token_resp = _http_response(400, {"error": "invalid_grant"})
-    userinfo_resp = _http_response(200, {"email": "x@example.com"})
     cm = MagicMock()
     cm.__aenter__ = AsyncMock(return_value=MagicMock(post=AsyncMock(return_value=token_resp)))
     cm.__aexit__ = AsyncMock(return_value=None)

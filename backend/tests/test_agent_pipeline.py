@@ -12,8 +12,8 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from app.core.dependencies import get_current_user
-from app.models.agent import AgentProfile, AgentSkill, AgentTool, AgentMemory, AgentTask, AgentExecution
-from app.models.agent_network import AgentPermission, AgentTaskDelegation, AgentTeam, AgentTeamMember
+from app.models.agent import AgentProfile, AgentMemory, AgentTask
+from app.models.agent_network import AgentPermission, AgentTaskDelegation, AgentTeamMember
 from app.models.user import User
 from app.services.ai_service import ai_service
 

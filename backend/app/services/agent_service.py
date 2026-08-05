@@ -5,7 +5,7 @@ import time
 import uuid
 from datetime import timezone
 from pathlib import Path
-from typing import Any, AsyncGenerator
+from typing import AsyncGenerator
 
 import httpx
 from sqlalchemy import select
@@ -24,7 +24,6 @@ from app.models.agent import (
     Workflow,
     WorkflowStep,
 )
-from app.models.user import User
 from app.schemas.agent import AgentChatResponse, AgentTaskResponse
 from app.services.ai_service import ai_service
 
@@ -594,7 +593,7 @@ class AgentOrchestrator:
         if memory_ctx:
             system += f"\n\nRelevant memories:\n{memory_ctx}"
         if workflows:
-            system += f"\n\nActive workflows:\n" + "\n".join(f"- {w.name}: {w.description or ''}" for w in workflows)
+            system += "\n\nActive workflows:\n" + "\n".join(f"- {w.name}: {w.description or ''}" for w in workflows)
         system += "\n\nYou can break down complex tasks into steps, use available tools, and reference past conversations. Be proactive and autonomous."
 
         start = time.perf_counter()

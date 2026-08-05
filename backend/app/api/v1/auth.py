@@ -4,7 +4,6 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings

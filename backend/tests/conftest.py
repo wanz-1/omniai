@@ -28,12 +28,10 @@ os.environ.setdefault("MFA_ENABLED", "false")
 
 import pytest  # noqa: E402
 from httpx import ASGITransport, AsyncClient  # noqa: E402
-from sqlalchemy.ext.asyncio import AsyncSession  # noqa: E402
 
 from app.main import app  # noqa: E402
 from app.core.dependencies import get_db, get_current_user  # noqa: E402
 from app.core.security import hash_password  # noqa: E402
-from app.models.user import User  # noqa: E402
 
 pytest_plugins = ("pytest_asyncio",)
 

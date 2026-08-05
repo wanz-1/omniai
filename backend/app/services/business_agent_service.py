@@ -1,20 +1,16 @@
 import uuid
 import json
 from datetime import datetime, timedelta, timezone
-from decimal import Decimal
-from typing import Any
 
 from sqlalchemy import select, func, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import AppError
 from app.models.business import (
-    ApprovalRequest, BusinessAlert, BusinessMetric, BusinessReport,
+    ApprovalRequest, BusinessMetric, BusinessReport,
     BusinessWorkflow, BusinessWorkflowExecution, FinancialRecord,
     KnowledgeDocument,
 )
-from app.models.organization import Organization
-from app.models.user import User
 from app.services.ai_service import ai_service
 
 
@@ -92,7 +88,6 @@ class BusinessAgentService:
         period_end: str | None = None
     ) -> BusinessReport:
         metrics = await self._get_recent_metrics(organization_id, agent_type)
-        knowledge = await self._query_knowledge(organization_id, f"{report_type} report")
 
         system_prompt = self._get_agent_system_prompt(agent_type)
         data_str = json.dumps(metrics, default=str)[:3000]

@@ -1,18 +1,14 @@
 import json
 import uuid
-from datetime import datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
-from app.models.agent import AgentProfile, AgentMemory
+from app.models.agent import AgentProfile
 from app.models.agent_network import (
     AgentTeam,
     AgentTeamMember,
     AgentTaskDelegation,
-    AgentMessage,
-    AgentPerformance,
 )
 from app.services.ai_service import ai_service
 

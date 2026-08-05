@@ -1,10 +1,10 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Boolean, DateTime, Enum as SAEnum, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship, backref
 
-from app.core.constants import AgentStatus, AgentTaskStatus, AgentToolType, WorkflowStepType
+from app.core.constants import AgentStatus, AgentTaskStatus
 from app.models.base import Base, TimestampMixin, UUIDMixin
 
 

@@ -9,7 +9,7 @@ from app.schemas.v5_copilot import (
     CopilotConfigResponse, CopilotSessionResponse, CopilotWorkflowResponse,
     CopilotWorkflowExecutionResponse, CopilotRecommendationResponse,
     CopilotApprovalResponse, CopilotChatRequest, CopilotChatResponse,
-    ExecuteWorkflowRequest, ApprovalRequest, ApprovalDecision, CopilotQueryRequest,
+    ExecuteWorkflowRequest, ApprovalRequest, ApprovalDecision,
 )
 from app.services.industry_copilot.copilot_engine import CopilotEngine
 from app.services.industry_copilot.ngo_copilot import NGOCopilot
@@ -35,7 +35,6 @@ async def chat_with_copilot(req: CopilotChatRequest, current_user: User = Depend
 
 @router.get("/configs", response_model=list[CopilotConfigResponse])
 async def list_copilot_configs(industry: str | None = None, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    engine = CopilotEngine(db)
     from sqlalchemy import select
     from app.models.v5_copilot import CopilotConfig
     q = select(CopilotConfig).where(CopilotConfig.organization_id == (current_user.organization_id or current_user.id))

@@ -43,6 +43,15 @@ htmlcov/
 coverage/
 coverage.xml
 
+# Test cache
+.pytest_cache/
+
+# Runtime data
+data/
+uploads/
+agent_workspace/
+backend/uploads/
+
 # Docker
 docker-data/
 

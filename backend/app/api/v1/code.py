@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, get_db
 from app.core.exceptions import NotFoundError
-from app.models.code_project import CodeGeneration, CodeProject
+from app.models.code_project import CodeProject
 from app.models.user import User
 from app.schemas.code import (
     CodeExplainRequest,

@@ -1,6 +1,5 @@
 """Enhanced AI model router supporting multimodal models."""
 
-from typing import Any
 
 from app.core.config import settings
 

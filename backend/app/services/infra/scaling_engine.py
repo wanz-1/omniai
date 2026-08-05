@@ -1,10 +1,9 @@
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.global_infrastructure import (
-    AIModelRegistry, ClusterDeployment, MonitoringMetric, ServiceDeployment,
+    AIModelRegistry, MonitoringMetric,
 )
-from app.services.ai_service import ai_service
 
 
 class InfraScalingEngine:

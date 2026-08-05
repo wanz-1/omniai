@@ -1,12 +1,10 @@
 import logging
-import uuid
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from typing import AsyncGenerator
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-from fastapi.middleware.cors import CORSMiddleware
 from prometheus_fastapi_instrumentator import Instrumentator
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
@@ -19,6 +17,8 @@ from app.core.exceptions import AppError
 from app.models.base import Base
 
 setup_logging()
+
+logger = logging.getLogger("omniai.main")
 
 if settings.sentry_dsn:
     import sentry_sdk
@@ -41,8 +41,6 @@ if settings.sentry_dsn:
         send_default_pii=True,
     )
     logger.info("Sentry initialized", extra={"event": "sentry_init"})
-
-logger = logging.getLogger("omniai.main")
 
 engine = create_async_engine(
     settings.database_url,

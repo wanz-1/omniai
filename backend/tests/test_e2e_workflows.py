@@ -15,7 +15,6 @@ Each test verifies:
 - Permission enforcement
 """
 import uuid
-from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -25,8 +24,7 @@ from app.core.dependencies import get_current_user, get_db
 from app.core.exceptions import NotFoundError
 from app.core.metrics import api_requests_total
 from app.main import app
-from app.models.document import Document, DocumentVersion
-from app.models.security_event import SecurityEventV6
+from app.models.document import Document
 from app.models.user import User
 from app.models.website import Website, WebsiteDeployment
 from app.models.bot import Bot
@@ -487,8 +485,6 @@ class TestConnectorPlatformWorkflow:
         assert _counter("DELETE", f"/api/v1/v5/connector/integrations/{integration_id}", 200) > before
 
         # Audit log chain
-        all_events = db.objects_of(SecurityEventV6)
-        conn_events = [e for e in all_events if e.resource_type == "connector" and str(user.id) in (e.user_id or "")]
         # Note: connector events may use different resource_type
         # At minimum verify the workflow completed
 

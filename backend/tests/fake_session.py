@@ -10,7 +10,6 @@ import uuid
 from collections import defaultdict
 from datetime import datetime, timezone
 
-from sqlalchemy import select
 from sqlalchemy.sql import operators
 from sqlalchemy.sql.dml import Delete, Update
 from sqlalchemy.sql.elements import BinaryExpression, BindParameter, BooleanClauseList, Grouping

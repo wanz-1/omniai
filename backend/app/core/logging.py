@@ -1,6 +1,5 @@
 import json
 import logging
-import uuid
 from contextvars import ContextVar
 from datetime import datetime, timezone
 from typing import Any

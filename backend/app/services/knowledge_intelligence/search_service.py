@@ -1,6 +1,6 @@
-from sqlalchemy import select, func
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.v5_knowledge import KnowledgeDocumentV5, KnowledgeChunkV5, SearchQueryV5, CitationRecord, KnowledgeConnectorV5, KnowledgePermissionV5
+from app.models.v5_knowledge import KnowledgeDocumentV5, KnowledgeChunkV5, SearchQueryV5, CitationRecord, KnowledgePermissionV5
 from app.services.ai_service import ai_service
 
 class SearchService:

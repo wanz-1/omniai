@@ -1,13 +1,12 @@
 import uuid
 from typing import Annotated, AsyncGenerator, Optional
 
-from fastapi import Depends, Header, Query, Request
+from fastapi import Depends, Header, Query
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.core.config import settings
 from app.core.exceptions import AuthError, ForbiddenError
 from app.core.security import verify_token
 from app.models.user import User

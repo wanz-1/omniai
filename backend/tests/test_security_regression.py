@@ -4,8 +4,6 @@ Covers the AI security guard wiring (prompt injection, secret exfiltration,
 output validation) through the real `complete_with_guard` pipeline, plus
 tenant isolation on documents and bots.
 """
-import uuid
-from unittest.mock import AsyncMock, patch
 
 import pytest
 

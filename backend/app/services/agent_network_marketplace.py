@@ -5,8 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.agent import AgentProfile
 from app.models.agent_network import AgentTeam
-from app.models.marketplace import MarketplaceItem, MarketplacePurchase
-from app.services.ai_service import ai_service
+from app.models.marketplace import MarketplaceItem
 
 
 class AgentNetworkMarketplaceService:

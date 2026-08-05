@@ -126,6 +126,5 @@ def verify_recovery_code(code: str, stored_codes: list[str]) -> tuple[bool, list
 
 def create_api_key() -> tuple[str, str]:
     key = f"om_{uuid.uuid4().hex}{uuid.uuid4().hex}"
-    prefix = key[:12]
     hashed = hash_password(key)
     return key, hashed

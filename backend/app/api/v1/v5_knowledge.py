@@ -7,9 +7,7 @@ from app.core.dependencies import get_current_user, get_db
 from app.models.user import User
 from app.schemas.v5_knowledge import (
     KnowledgeConnectorV5Response, KnowledgeDocumentV5Response,
-    KnowledgeGraphNodeResponse, KnowledgeGraphEdgeResponse,
-    SearchRequest, SearchResponse, KnowledgeGraphQuery, KnowledgeGraphResponse,
-    ConnectSourceRequest, ConnectSourceResponse,
+    SearchRequest, SearchResponse, KnowledgeGraphQuery, ConnectSourceRequest,
 )
 from app.services.knowledge_intelligence.connector_base import BaseConnector
 from app.services.knowledge_intelligence.indexing_service import IndexingService
@@ -40,7 +38,7 @@ async def sync_connector(connector_id: uuid.UUID, current_user: User = Depends(g
 @router.delete("/connectors/{connector_id}")
 async def disconnect_source(connector_id: uuid.UUID, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     svc = BaseConnector(db)
-    result = await svc.disconnect(connector_id)
+    await svc.disconnect(connector_id)
     return {"status": "disconnected", "id": str(connector_id)}
 
 

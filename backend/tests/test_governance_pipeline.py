@@ -18,7 +18,7 @@ from app.models.organization import Organization, OrganizationMember
 from app.models.user import User
 from app.models.v5_compliance import (
     AuditRecord, ComplianceCheck, ComplianceCheckResult, CorrectiveAction,
-    Finding, IndustryCompliancePack, Policy, Regulation,
+    Finding, IndustryCompliancePack, Policy,
 )
 from app.models.v6_governance import (
     AIEvaluation, AIDecision, HumanReview, ModelMetric, PromptRegistry,
@@ -150,7 +150,7 @@ async def test_policy_check_by_policy_id(stateful_client):
 @pytest.mark.asyncio
 async def test_document_review_and_contract_analysis(stateful_client):
     client, db = stateful_client
-    user = await _org_user(db)
+    await _org_user(db)
 
     with _mock_ai_text("GDPR data handling risks identified"):
         reviewed = await client.post(f"{COMPLIANCE}/documents/review", json={
@@ -182,7 +182,7 @@ async def test_document_review_and_contract_analysis(stateful_client):
 @pytest.mark.asyncio
 async def test_audit_lifecycle_checklist_and_package(stateful_client):
     client, db = stateful_client
-    user = await _org_user(db)
+    await _org_user(db)
 
     created = await client.post(f"{COMPLIANCE}/audits", json={
         "audit_type": "financial", "title": "Q3 Financial Audit",
@@ -265,7 +265,7 @@ async def test_findings_and_corrective_actions_flow(stateful_client):
 @pytest.mark.asyncio
 async def test_regulations_and_impact_analysis(stateful_client):
     client, db = stateful_client
-    user = await _org_user(db)
+    await _org_user(db)
 
     registered = await client.post(
         f"{COMPLIANCE}/regulations",

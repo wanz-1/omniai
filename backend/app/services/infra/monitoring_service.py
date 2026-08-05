@@ -1,10 +1,10 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.global_infrastructure import (
-    ClusterDeployment, MonitoringMetric, ServiceDeployment,
+    ClusterDeployment, MonitoringMetric,
 )
 
 

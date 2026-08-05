@@ -1,4 +1,3 @@
-import uuid
 from datetime import datetime, timezone
 
 import httpx
@@ -7,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.exceptions import AuthError
-from app.core.security import create_access_token, create_refresh_token, hash_password
+from app.core.security import create_access_token, create_refresh_token
 from app.models.user import OAuthAccount, User
 from app.schemas.auth import TokenResponse
 

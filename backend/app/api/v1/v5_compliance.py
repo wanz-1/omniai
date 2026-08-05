@@ -7,11 +7,9 @@ from app.core.dependencies import get_current_user, get_db
 from app.models.user import User
 from app.schemas.v5_compliance import (
     PolicyResponse, RegulationResponse, ComplianceCheckResponse, AuditRecordResponse,
-    FindingResponse, CorrectiveActionResponse, RiskScoreResponse,
-    ComplianceReportResponse, ComplianceDocumentReviewResponse,
+    FindingResponse, CorrectiveActionResponse, ComplianceReportResponse, ComplianceDocumentReviewResponse,
     AnalyzeDocumentRequest, CheckPolicyRequest, CreateAuditRequest,
     CreateFindingRequest, CreateCorrectiveActionRequest, ReviewDocumentRequest,
-    ApprovalDecision,
 )
 from app.services.compliance_engine.policy_manager import PolicyManager
 from app.services.compliance_engine.regulation_monitor import RegulationMonitor

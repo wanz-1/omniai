@@ -8,12 +8,10 @@ from typing import Any, AsyncGenerator, Optional
 from app.core.config import settings
 from app.core.exceptions import (
     AIServiceError,
-    ModelNotFoundError,
     ProviderOverloadedError,
     ProviderRateLimitError,
 )
 from app.core.metrics import track_ai_request
-from app.services.ai_model_router import ai_model_router
 
 logger = logging.getLogger("omniai.ai_service")
 
@@ -71,7 +69,7 @@ async def retry_with_backoff(
                     },
                 )
                 await asyncio.sleep(delay + jitter)
-        except Exception as e:
+        except Exception:
             raise
     raise last_exception
 

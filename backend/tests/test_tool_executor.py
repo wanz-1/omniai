@@ -6,7 +6,6 @@ crm tools, including workspace sandboxing and validation paths.
 import json
 import uuid
 
-import pytest
 
 from app.models.agent import AgentTool
 from app.services.agent_service import ToolExecutor

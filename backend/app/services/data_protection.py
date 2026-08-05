@@ -2,7 +2,6 @@ import base64
 import logging
 import re
 from dataclasses import dataclass, field
-from typing import Any
 
 from cryptography.fernet import Fernet
 

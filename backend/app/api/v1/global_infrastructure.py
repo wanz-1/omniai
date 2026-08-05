@@ -7,9 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.dependencies import get_current_user
 from app.core.dependencies import get_db
 from app.models.global_infrastructure import (
-    AIModelRegistry, BackupRecord, ClusterDeployment, ComplianceReport,
-    DataResidencyConfig, DeveloperApiKey, InfrastructureRegion,
-    MonitoringMetric, OrganizationPolicy, SecurityEvent, ServiceDeployment,
+    AIModelRegistry, BackupRecord, ClusterDeployment, DeveloperApiKey, InfrastructureRegion,
+    SecurityEvent, ServiceDeployment,
 )
 from app.models.user import User
 from app.schemas.global_infrastructure import (

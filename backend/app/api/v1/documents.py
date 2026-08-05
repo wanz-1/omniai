@@ -1,15 +1,14 @@
-import json
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query, UploadFile
+from fastapi import APIRouter, Depends, UploadFile
 from fastapi.responses import StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, get_db
 from app.core.exceptions import NotFoundError
-from app.models.document import Document, DocumentVersion
+from app.models.document import Document
 from app.models.user import User
 from app.schemas.document import (
     DocumentCreateRequest,

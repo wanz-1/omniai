@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.v3_collaboration import (
-    AICommunication, AIMeetingSession, DeviceSchedule, DeviceTelemetry,
+    AICommunication, AIMeetingSession, DeviceTelemetry,
     LearningPath, PhysicalDevice,
 )
 from app.services.ai_service import ai_service

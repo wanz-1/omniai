@@ -2,13 +2,12 @@ import uuid
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request
-from sqlalchemy import select, func
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.constants import SubscriptionInterval
 from app.core.dependencies import get_current_user, get_db
 from app.core.exceptions import NotFoundError
-from app.models.organization import Organization, OrganizationMember
+from app.models.organization import Organization
 from app.models.subscription import Subscription, SubscriptionPlan, Invoice
 from app.models.user import User
 from app.schemas.common import MessageResponse

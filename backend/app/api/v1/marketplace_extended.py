@@ -10,12 +10,6 @@ from app.models.marketplace import MarketplaceItem
 from app.models.marketplace_extended import (
     CreatorProfile,
     EnterpriseListing,
-    PluginDefinition,
-    PluginInstallation,
-    ProductCategory,
-    ProductReview,
-    ProductVersion,
-    VerificationResult,
 )
 from app.models.user import User
 from app.schemas.marketplace_extended import (

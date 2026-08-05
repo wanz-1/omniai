@@ -6,7 +6,7 @@ from typing import Any
 from sqlalchemy import select, func, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.v6_governance import AIEvaluation, HallucinationEvent, QualityScore, ModelMetric
+from app.models.v6_governance import AIEvaluation, HallucinationEvent, QualityScore
 
 logger = logging.getLogger("omniai.governance.quality")
 

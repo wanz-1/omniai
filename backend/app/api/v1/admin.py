@@ -12,7 +12,7 @@ from app.models.audit import AuditLog
 from app.models.organization import Organization, OrganizationMember
 from app.models.project import Project
 from app.models.agent import AgentProfile
-from app.models.subscription import SubscriptionPlan, Subscription, Invoice
+from app.models.subscription import Invoice
 from app.models.usage import UsageLog
 from app.models.user import User
 from app.models.marketplace import MarketplaceItem

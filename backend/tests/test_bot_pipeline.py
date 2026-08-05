@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from app.core.dependencies import get_current_user
-from app.models.bot import Bot, BotConversation, BotMessage
+from app.models.bot import Bot
 from app.models.user import User
 from app.services.ai_service import ai_service
 
@@ -232,7 +232,7 @@ async def test_conversation_messages_and_analytics(auth_client):
     conv1 = await service.create_conversation(bot_id, session_id="sess-a", channel="web")
     await service.add_message(conv1.id, "user", "What is the refund policy?", tokens_used=5, latency_ms=120)
     await service.add_message(conv1.id, "bot", "Full refunds within 30 days.", tokens_used=40, latency_ms=900)
-    conv2 = await service.create_conversation(bot_id, session_id="sess-b", channel="slack")
+    await service.create_conversation(bot_id, session_id="sess-b", channel="slack")
 
     conversations = (await client.get(f"/api/v1/bots/{bot_id}/conversations")).json()
     assert len(conversations) == 2

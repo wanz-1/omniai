@@ -1,4 +1,4 @@
-from sqlalchemy import select, func
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.v5_copilot import CopilotRecommendation, CopilotAnalytic, CopilotSession
 from app.services.ai_service import ai_service

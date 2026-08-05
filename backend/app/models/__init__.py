@@ -119,7 +119,7 @@ from app.models.v4_ecosystem import (
 )
 from app.models.v5_compliance import (
     Regulation, Policy, ComplianceCheck, ComplianceCheckResult, AuditRecord,
-    Finding, CorrectiveAction, RiskScore, ComplianceReport, ApprovalHistory,
+    Finding, CorrectiveAction, RiskScore, ComplianceReport as ComplianceReportV5, ApprovalHistory,
     IndustryCompliancePack, ComplianceDocumentReview, RegulatoryUpdate,
 )
 from app.models.v5_simulation import (
@@ -227,7 +227,7 @@ __all__ = [
     "ModelRegistryEntryV4", "ModelBenchmarkV4", "FineTunedModelV4",
     "SdkReleaseV4", "PluginDefinitionV4",
     "Regulation", "Policy", "ComplianceCheck", "ComplianceCheckResult", "AuditRecord",
-    "Finding", "CorrectiveAction", "RiskScore", "ComplianceReport", "ApprovalHistory",
+    "Finding", "CorrectiveAction", "RiskScore", "ComplianceReportV5", "ApprovalHistory",
     "IndustryCompliancePack", "ComplianceDocumentReview", "RegulatoryUpdate",
     "DigitalTwin", "DigitalTwinEntity", "SimulationModel", "Scenario", "Simulation",
     "SimulationVariable", "Prediction", "SimulationOutcome", "RiskAssessment",

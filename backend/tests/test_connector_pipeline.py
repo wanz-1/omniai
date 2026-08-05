@@ -17,8 +17,8 @@ from app.core.dependencies import get_current_user
 from app.models.organization import Organization, OrganizationMember
 from app.models.user import User
 from app.models.v5_connector_platform import (
-    ConnectorApiKey, ConnectorDefinition, ConnectorIntegration, ConnectorLog,
-    ConnectorPermission, SyncJob, WebhookEvent,
+    ConnectorApiKey, ConnectorIntegration, ConnectorLog,
+    ConnectorPermission, WebhookEvent,
 )
 from app.services.ai_service import ai_service
 from app.services.connector_platform.sync_engine import SyncEngine
@@ -211,7 +211,6 @@ async def test_sync_start_complete_list_summary(stateful_client):
 async def test_sync_run_full_flow(stateful_client):
     client, db = stateful_client
     _defs, _gdrive, integration = await _seed_and_install(client, db)
-    integration_id = uuid.UUID(integration["id"])
 
     from app.services.connector_platform.authentication_service import AuthenticationService
     with patch.object(AuthenticationService, "get_active_token", new=AsyncMock(return_value="fake-token")), \

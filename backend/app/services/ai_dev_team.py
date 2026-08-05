@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.agent_network import AgentTeam, DevProject
+from app.models.agent_network import DevProject
 from app.services.ai_service import ai_service
 
 

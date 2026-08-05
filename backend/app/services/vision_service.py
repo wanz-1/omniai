@@ -1,6 +1,5 @@
 import uuid
 import base64
-from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -101,7 +100,7 @@ class VisionService:
                     "content": (
                         f"Extract structured data from this receipt/invoice text. "
                         f"Return JSON with: vendor, date, total, subtotal, tax, currency, "
-                        f"items (array of {description, quantity, unit_price, total}), "
+                        f"items (array of {{description, quantity, unit_price, total}}), "
                         f"payment_method, receipt_number.\n\nText:\n{text}"
                     ),
                 }

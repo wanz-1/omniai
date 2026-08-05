@@ -1,4 +1,3 @@
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.v5_simulation import Prediction, Simulation
 from app.services.ai_service import ai_service
@@ -17,7 +16,6 @@ Provide: predicted value, confidence interval (lower/upper), confidence percenta
         self.db.add(p); await self.db.commit(); await self.db.refresh(p); return p
 
     async def multi_year_forecast(self, organization_id, simulation_id, base_value, growth_rate=0.05, years=5):
-        sim = await self.db.get(Simulation, simulation_id)
         projections = []
         val = base_value
         for y in range(1, years + 1):

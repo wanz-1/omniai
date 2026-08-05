@@ -1,8 +1,8 @@
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 from app.services.connector_platform.authentication_service import (
-    AuthenticationService, encrypt_value, decrypt_value, _get_fernet,
+    AuthenticationService, encrypt_value, decrypt_value,
 )
 
 

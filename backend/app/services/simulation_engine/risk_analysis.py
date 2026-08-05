@@ -1,8 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.v5_simulation import RiskAssessment, SimulationOutcome, Simulation
+from app.models.v5_simulation import RiskAssessment, Simulation
 from app.services.ai_service import ai_service
-from datetime import datetime, timezone
 
 class RiskAnalysis:
     def __init__(self, db: AsyncSession): self.db = db

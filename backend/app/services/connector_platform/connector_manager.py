@@ -11,7 +11,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.v5_connector_platform import (
     ConnectorDefinition, ConnectorIntegration, ConnectorLog,
 )
-from app.services.ai_service import ai_service
 
 logger = logging.getLogger("omniai.connector.manager")
 

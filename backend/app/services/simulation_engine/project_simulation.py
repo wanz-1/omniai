@@ -1,6 +1,4 @@
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.v5_simulation import Simulation, SimulationOutcome
 from app.services.ai_service import ai_service
 
 class ProjectSimulation:

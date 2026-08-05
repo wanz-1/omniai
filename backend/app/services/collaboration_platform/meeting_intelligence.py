@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import select, func
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.v5_collaboration import CollaborationSession, MultimodalMessage, SessionRecording, AIMeetingInsight
 from app.services.ai_service import ai_service

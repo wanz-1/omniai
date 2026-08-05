@@ -4,13 +4,11 @@ Tests every major user workflow against actual API routes.
 Uses dependency overrides to bypass auth and focuses on service-level correctness.
 """
 import io
-import json
 import uuid
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from fastapi import Depends
 from httpx import ASGITransport, AsyncClient
 
 from app.core.dependencies import get_current_user, get_db

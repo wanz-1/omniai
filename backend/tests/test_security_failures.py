@@ -13,7 +13,6 @@ import pytest
 from app.core.exceptions import AIServiceError, ProviderOverloadedError, ProviderRateLimitError
 from app.core.rate_limit import InMemoryRateLimiter
 from app.models.user import User
-from app.models.v5_knowledge import KnowledgePermissionV5
 from app.services.ai_model_router import AIModelRouter
 from app.services.ai_service import AIService
 from app.services.knowledge_intelligence.permission_service import PermissionService

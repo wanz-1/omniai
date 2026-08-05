@@ -1,13 +1,13 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, UploadFile, Form, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, File, UploadFile, Form
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, get_db
-from app.core.exceptions import NotFoundError, AppError
-from app.models.media import VoiceSession, VoiceMessage
+from app.core.exceptions import NotFoundError
+from app.models.media import VoiceSession
 from app.models.user import User
 from app.schemas.voice import (
     VoiceSessionResponse,

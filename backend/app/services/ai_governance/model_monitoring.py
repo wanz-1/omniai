@@ -6,7 +6,7 @@ from typing import Any
 from sqlalchemy import select, func, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.v6_governance import ModelMetric, AIEvaluation
+from app.models.v6_governance import ModelMetric
 
 logger = logging.getLogger("omniai.governance.model_monitoring")
 

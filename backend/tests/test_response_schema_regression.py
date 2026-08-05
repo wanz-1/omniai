@@ -7,7 +7,6 @@ serialized shape is stable and typed: UUID fields stay UUIDs, optional
 fields have defaults, and no raw dict leaks through the schema.
 """
 import uuid
-from datetime import datetime, timezone
 from unittest.mock import AsyncMock, patch
 
 import pytest

@@ -3,7 +3,7 @@ from typing import Annotated
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import func, select, text
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, get_db
@@ -11,12 +11,9 @@ from app.models.user import User
 from app.models.v6_governance import (
     AIEvaluation,
     AIDecision,
-    EvaluationCase,
     HumanReview,
-    ModelMetric,
     PromptRegistry,
     PromptVersion,
-    QualityScore,
     UserFeedback,
 )
 from app.schemas.v6_governance import (
@@ -24,7 +21,6 @@ from app.schemas.v6_governance import (
     AIDecisionResponse,
     EvaluateRequest,
     EvaluateResponse,
-    EvaluationCaseCreate,
     FeedbackResponse,
     FeedbackSubmit,
     GovernanceDashboardResponse,

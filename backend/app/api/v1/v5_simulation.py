@@ -8,7 +8,7 @@ from app.models.user import User
 from app.schemas.v5_simulation import (
     DigitalTwinResponse, DigitalTwinEntityResponse, ScenarioResponse,
     SimulationResponse, PredictionResponse, RiskAssessmentResponse,
-    SimulationRecommendationResponse, SimulationReportResponse,
+    SimulationReportResponse,
     CreateScenarioRequest, RunSimulationRequest, CompareScenariosRequest,
     CreateDigitalTwinRequest, AddEntityRequest, OptimizationRequest,
 )

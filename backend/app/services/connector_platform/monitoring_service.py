@@ -1,9 +1,8 @@
 import uuid
-from datetime import datetime
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.v5_connector_platform import (
-    ConnectorIntegration, ConnectorLog, ConnectorPermission,
+    ConnectorLog, ConnectorPermission,
 )
 from app.services.ai_service import ai_service
 

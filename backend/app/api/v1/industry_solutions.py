@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.dependencies import get_current_user
 from app.core.dependencies import get_db
 from app.models.industry_solutions import (
-    ComplianceRule, Industry, IndustryAgent, IndustryAnalytic,
+    Industry, IndustryAgent, IndustryAnalytic,
     IndustryKnowledgeBase, IndustryTemplate, IndustryWorkflow, SolutionPackage,
 )
 from app.models.user import User
@@ -16,7 +16,7 @@ from app.schemas.industry_solutions import (
     IndustryAgentResponse, IndustryQuery, IndustryQueryResponse,
     IndustryResponse, IndustryTemplateCreate, IndustryTemplateResponse,
     IndustryWorkflowCreate, IndustryWorkflowResponse, KnowledgeBaseCreate,
-    KnowledgeBaseResponse, SolutionPackageInstall, SolutionPackageResponse,
+    KnowledgeBaseResponse, SolutionPackageResponse,
 )
 from app.services.industry.compliance_engine import IndustryComplianceEngine
 from app.services.industry.industry_agent_manager import IndustryAgentManager
@@ -139,7 +139,7 @@ async def create_agent(slug: str, req: IndustryAgentCreate, current_user: User =
 
 @router.post("/{slug}/agents/{agent_slug}/chat")
 async def chat_with_agent(slug: str, agent_slug: str, query: str, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    industry = await _get_industry(slug, db)
+    await _get_industry(slug, db)
     mgr = IndustryAgentManager(db)
     return await mgr.query_agent(slug, query)
 

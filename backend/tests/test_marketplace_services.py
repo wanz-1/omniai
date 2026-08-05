@@ -11,16 +11,9 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from app.models.marketplace import MarketplaceItem, MarketplacePurchase
 from app.models.marketplace_extended import (
     CreatorProfile,
-    PluginDefinition,
-    PluginInstallation,
     ProductAnalytic,
-    ProductCategory,
-    ProductReview,
-    ProductVersion,
-    VerificationResult,
 )
 from app.services.marketplace_creator import MarketplaceCreatorService
 from app.services.marketplace_plugin import MarketplacePluginService
@@ -370,7 +363,7 @@ async def test_plugin_lifecycle(stateful_client):
 async def test_list_plugins_filters_type_and_active(stateful_client):
     _client, db = stateful_client
     svc = MarketplacePluginService(db)
-    p1 = await svc.register_plugin("A", "a", "workflow", uuid.uuid4())
+    await svc.register_plugin("A", "a", "workflow", uuid.uuid4())
     p2 = await svc.register_plugin("B", "b", "integration", uuid.uuid4())
     p2.is_active = False
 

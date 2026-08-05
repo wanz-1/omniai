@@ -1,6 +1,5 @@
 """Simple storage service for media assets."""
 
-import uuid
 from pathlib import Path
 
 from app.core.config import settings

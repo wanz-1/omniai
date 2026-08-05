@@ -8,6 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.security_event import SecurityEventV6
 
+SecurityEvent = SecurityEventV6
+
 logger = logging.getLogger("omniai.security_audit")
 
 

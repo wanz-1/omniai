@@ -5,7 +5,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.v5_collaboration import (
     CollaborationSession, SessionParticipant, MultimodalMessage,
 )
-from app.services.ai_service import ai_service
 
 
 class SessionManager:

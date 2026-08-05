@@ -2,10 +2,9 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.v4_ecosystem import (
-    EnterpriseIntegrationV4, IntegrationAuthV4, SyncRecordV4,
+    EnterpriseIntegrationV4, SyncRecordV4,
     AIAppDefinition, AppComponentV4, PublishedAppV4,
-    ModelRegistryEntryV4, ModelBenchmarkV4, FineTunedModelV4,
-    SdkReleaseV4, PluginDefinitionV4,
+    ModelRegistryEntryV4, SdkReleaseV4, PluginDefinitionV4,
 )
 from app.services.ai_service import ai_service
 

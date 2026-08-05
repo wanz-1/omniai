@@ -6,8 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.dependencies import get_current_user, get_db
 from app.models.user import User
 from app.schemas.v4_enterprise import (
-    KnowledgeConnectorResponse, EnterpriseDocumentResponse,
-    AIPolicyResponse, PolicyCheckRequest, PolicyCheckResponse,
+    KnowledgeConnectorResponse, AIPolicyResponse, PolicyCheckRequest, PolicyCheckResponse,
     AgentApprovalRequestResponse, AIMonitoringEventV4Response,
     ObservabilityDashboardResponse, EnterpriseAnalyticsV4Response,
 )

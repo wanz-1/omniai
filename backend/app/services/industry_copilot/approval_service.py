@@ -1,6 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.v5_copilot import CopilotApproval, CopilotMessage
+from app.models.v5_copilot import CopilotApproval
 from datetime import datetime, timezone
 
 class ApprovalService:

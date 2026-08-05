@@ -81,8 +81,6 @@ Only return valid JSON. No markdown. No explanations."""
         primary = theme.get("primary_color", "#2563EB")
         secondary = theme.get("secondary_color", "#7C3AED")
         dark_mode = theme.get("dark_mode", False)
-        bg = "#0F172A" if dark_mode else "#F8FAFC"
-        text = "#F8FAFC" if dark_mode else "#111827"
         card_bg = "#1E293B" if dark_mode else "#FFFFFF"
         muted = "#94A3B8" if dark_mode else "#64748B"
         border = "#334155" if dark_mode else "#E2E8F0"
@@ -239,8 +237,6 @@ Only return valid JSON. No markdown. No explanations."""
 
         pages = website.pages or []
         theme = website.theme_config or {}
-        primary = theme.get("primary_color", "#2563EB")
-        secondary = theme.get("secondary_color", "#7C3AED")
         font = theme.get("font", "Inter")
         dark_mode = theme.get("dark_mode", False)
         bg_color = "#0F172A" if dark_mode else "#F8FAFC"

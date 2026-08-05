@@ -1,7 +1,6 @@
 import uuid
 import logging
 from datetime import datetime, timezone, timedelta
-from typing import Any
 
 from sqlalchemy import select, desc
 from sqlalchemy.ext.asyncio import AsyncSession

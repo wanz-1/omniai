@@ -1,6 +1,5 @@
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.v5_simulation import Scenario, SimulationVariable, Simulation, SimulationOutcome
+from app.models.v5_simulation import Scenario, SimulationVariable, Simulation
 from app.services.ai_service import ai_service
 from datetime import datetime, timezone
 

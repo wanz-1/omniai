@@ -2,10 +2,9 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.v4_enterprise import (
-    KnowledgeConnector, KnowledgeSource, EnterpriseDocument,
-    AIPolicy, AgentApprovalRequest, AIAuditEvent,
-    AIMonitoringEventV4, ObservabilityDashboard,
-    EnterpriseAnalyticsV4, AdoptionMetricV4, CostSavingsRecordV4,
+    KnowledgeConnector, EnterpriseDocument,
+    AIPolicy, AgentApprovalRequest, AIMonitoringEventV4, ObservabilityDashboard,
+    EnterpriseAnalyticsV4,
 )
 from app.services.ai_service import ai_service
 

@@ -104,10 +104,10 @@ docker compose -f infra/docker/docker-compose.yml up postgres redis minio qdrant
 
 ```bash
 cd backend
-celery -A app.tasks worker --loglevel=info
+celery -A app.tasks.celery_app worker --loglevel=info
 
 # Optional, if scheduled/periodic tasks are used
-celery -A app.tasks beat --loglevel=info
+celery -A app.tasks.celery_app beat --loglevel=info
 ```
 
 ### Running Tests

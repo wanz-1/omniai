@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import select, func
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.v5_connector_platform import (
     ConnectorDefinition, MarketplaceConnector,

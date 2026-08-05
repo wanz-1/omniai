@@ -11,21 +11,14 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from app.core.exceptions import NotFoundError
-from app.models.agent_network import AgentPerformance, AgentReview
 from app.models.chat import ChatSession
 from app.models.code_studio import (
-    BuildRecord,
     BranchRecord,
     CommitRecord,
-    Repository,
-    SecurityScan,
-    StudioDeployment,
-    StudioDocumentation,
     StudioFile,
     StudioProject,
     TestRun,
 )
-from app.models.agent_network import AgentMessage
 from app.services.agent_communication import AgentCommunicationService
 from app.services.agent_evaluation import AgentEvaluationService
 from app.services.app_generator import AppGeneratorService

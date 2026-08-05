@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundError
 from app.models.document import Document, DocumentVersion
-from app.services.prompt_guard import build_user_prompt, wrap_untrusted
+from app.services.prompt_guard import build_user_prompt
 from app.schemas.document import (
     GrammarCorrection,
     GrammarResponse,

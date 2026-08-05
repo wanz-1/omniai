@@ -1,8 +1,6 @@
-import json
 import logging
 import uuid
 from datetime import datetime, timezone
-from typing import Any
 
 import httpx
 from sqlalchemy import select, func
