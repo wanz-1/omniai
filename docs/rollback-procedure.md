@@ -55,9 +55,11 @@ This drops the V6 tables (`user_sessions`, `subscription_plans`,
 3. Verify row counts and recent records on core tables (`users`, `agents`,
    `documents`, `organizations`) before reopening traffic.
 
-> Note: application startup runs `create_all` idempotently, so the
-> non-migration tables (`users`, `agents`, ...) are not dropped by the
-> downgrade — only the 7 migration-tracked V6 tables are.
+> Note: the schema is fully owned by Alembic (DB-001). A `downgrade base`
+> (or downgrade to a specific revision) drops all migration-tracked tables in
+> reverse dependency order, including the `0003` adopted tables. Schema
+> downgrades are destructive — always restore from `pg_dump` per step above and
+> verify row counts before reopening traffic.
 
 ## 4. Redeploy Previous Version
 

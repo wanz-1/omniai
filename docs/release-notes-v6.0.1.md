@@ -32,7 +32,10 @@
 
 ## Deferred (planned future work, not in this release)
 
-- v6.1 — Alembic migration ownership (`create_all` → migration-only)
 - v7 — Mobile application builder
 - Provider fallback UI improvements
 - Style-only Ruff cleanup
+
+## Post-release (v6.1, branch `feature/v6.1-migration-ownership`)
+
+- Alembic migration ownership completed: migration `0003` adopts the remaining 220 tables (Alembic owns all 227), `Base.metadata.create_all` removed from startup, CI `backend-migrate` job validates upgrade/parity/downgrade on real Postgres, and a phantom `tenants` FK that blocked real-Postgres boot was fixed.

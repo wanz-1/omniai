@@ -120,6 +120,40 @@ jobs:
           severity: CRITICAL
           format: table
 
+  backend-migrate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: omniai
+          POSTGRES_PASSWORD: omniai
+          POSTGRES_DB: omniai
+        ports:
+          - 5432:5432
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements/dev.txt
+      - name: Upgrade to head and verify schema parity
+        env:
+          DATABASE_URL_SYNC: postgresql://omniai:omniai@localhost:5432/omniai
+        run: |
+          alembic -c alembic/alembic.ini upgrade head
+          python -c "import os; from sqlalchemy import create_engine, inspect; from app.models import *; from app.models.base import Base; eng=create_engine(os.environ['DATABASE_URL_SYNC']); actual=set(inspect(eng).get_table_names()) - {'alembic_version'}; expected=set(Base.metadata.tables); assert actual == expected, ('MISSING', sorted(expected - actual), 'EXTRA', sorted(actual - expected)); print('SCHEMA_PARITY_OK', len(expected), 'tables')"
+      - name: Validate downgrade and re-upgrade
+        env:
+          DATABASE_URL_SYNC: postgresql://omniai:omniai@localhost:5432/omniai
+        run: |
+          alembic -c alembic/alembic.ini downgrade base
+          alembic -c alembic/alembic.ini upgrade head
+          echo "migration downgrade + re-upgrade OK"
+
   frontend-lint:
     runs-on: ubuntu-latest
     defaults:

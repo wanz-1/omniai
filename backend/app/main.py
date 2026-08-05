@@ -14,7 +14,6 @@ from app.core.middleware import setup_middleware
 from app.core.logging import setup_logging, get_request_id
 from app.core.observability import HealthChecker
 from app.core.exceptions import AppError
-from app.models.base import Base
 
 setup_logging()
 
@@ -61,9 +60,12 @@ health_checker = HealthChecker(engine=engine, session_factory=async_session_fact
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info("Starting OmniAI backend", extra={"event": "app_startup"})
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    logger.info("Database tables created/verified", extra={"event": "db_tables_created"})
+    # Schema is owned exclusively by Alembic (DB-001). Run `alembic upgrade head`
+    # against the target database before starting the application.
+    logger.info(
+        "Schema ownership: Alembic migrations (run `alembic upgrade head` before boot)",
+        extra={"event": "db_schema_migrations"},
+    )
     yield
     await engine.dispose()
     logger.info("OmniAI backend shut down", extra={"event": "app_shutdown"})
