@@ -438,6 +438,30 @@ class NVIDIAProvider(AIProvider):
             raise AIServiceError(detail=str(e), provider="nvidia")
 
 
+# Curated subset of the NVIDIA NIM catalog (build.nvidia.com/models) known to
+# work well for chat completion as of this integration. The full catalog is
+# much larger and changes regularly; pass any valid catalog model id to
+# NVIDIAProvider.chat_completion — this list is just a starting menu for UI
+# dropdowns / documentation.
+NVIDIA_NIM_FEATURED_MODELS = [
+    "thinkingmachines/inkling",
+    "moonshotai/kimi-k2.6",
+    "deepseek-ai/deepseek-v4-flash",
+    "deepseek-ai/deepseek-v4-pro",
+    "deepseek-ai/deepseek-v3.2",
+    "z-ai/glm5",
+    "z-ai/glm4.7",
+    "qwen/qwen3-235b-a22b",
+    "meta/llama-3.1-405b-instruct",
+    "meta/llama-4-maverick-17b-128e-instruct",
+    "google/gemma-4-31b-it",
+    "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning",
+    "nvidia/llama-3.1-nemotron-ultra-253b-v1",
+    "mistralai/mistral-large-3-675b-instruct-2512",
+    "microsoft/phi-4-mini-flash-reasoning",
+]
+
+
 class MistralProvider(AIProvider):
     def __init__(self):
         self.api_key = settings.mistral_api_key

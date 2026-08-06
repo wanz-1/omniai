@@ -54,35 +54,79 @@ class AgentOrchestrator:
         execution_log = []
         agents_involved = []
         final_output = ""
+        completed_steps: set[int] = set()
+        failed_steps: set[int] = set()
 
-        for step in plan.get("plan", []):
+        ordered_steps = self._topological_order(plan.get("plan", []))
+
+        for step in ordered_steps:
+            step_number = step.get("step")
+            depends_on = step.get("depends_on", []) or []
             agent_role = step.get("agent_role", "project_manager")
+            step_task = step.get("task", task)
+
+            unmet = [d for d in depends_on if d not in completed_steps]
+            if unmet:
+                execution_log.append({
+                    "step": step_number,
+                    "agent_role": agent_role,
+                    "task": step_task,
+                    "output": "",
+                    "status": "skipped",
+                    "reason": f"unmet dependencies: {unmet}",
+                })
+                failed_steps.add(step_number)
+                continue
+
             agent = await self._get_or_create_agent(agent_role, user_id, org_id)
             agents_involved.append(agent_role)
 
-            step_task = step.get("task", task)
             step_prompt = f"Execute this task: {step_task}\n\nContext from previous steps: {final_output}\n\nProvide a complete response."
             messages = [
                 {"role": "system", "content": f"You are an AI {agent_role}. Complete the assigned task thoroughly."},
                 {"role": "user", "content": step_prompt},
             ]
-            result = await ai_service.complete(messages, model="gpt-4o", temperature=0.5)
+            try:
+                result = await ai_service.complete(messages, model="gpt-4o", temperature=0.5)
+                step_output = result.get("content", "")
+            except Exception as exc:
+                execution_log.append({
+                    "step": step_number,
+                    "agent_role": agent_role,
+                    "task": step_task,
+                    "output": "",
+                    "status": "failed",
+                    "reason": str(exc),
+                })
+                failed_steps.add(step_number)
 
-            step_output = result.get("content", "")
+                task_delegation = AgentTaskDelegation(
+                    title=step_task,
+                    description=f"Delegated by orchestrator to {agent_role}",
+                    status="failed",
+                    input_data={"step": step_number, "depends_on": depends_on},
+                    output_data={"error": str(exc)},
+                    assignor_id=agent.id,
+                    assignee_id=agent.id,
+                )
+                self.db.add(task_delegation)
+                continue
+
             final_output += f"\n\n## {agent_role} Output\n{step_output}"
             execution_log.append({
-                "step": step.get("step"),
+                "step": step_number,
                 "agent_role": agent_role,
                 "task": step_task,
                 "output": step_output[:500],
                 "status": "completed",
             })
+            completed_steps.add(step_number)
 
             task_delegation = AgentTaskDelegation(
                 title=step_task,
                 description=f"Delegated by orchestrator to {agent_role}",
                 status="completed",
-                input_data={"step": step.get("step"), "depends_on": step.get("depends_on", [])},
+                input_data={"step": step_number, "depends_on": depends_on},
                 output_data={"output": step_output[:1000]},
                 assignor_id=agent.id,
                 assignee_id=agent.id,
@@ -93,9 +137,42 @@ class AgentOrchestrator:
         return {
             "final_output": final_output,
             "agents_involved": agents_involved,
-            "steps_completed": len(execution_log),
+            "steps_completed": len(completed_steps),
             "execution_log": execution_log,
         }
+
+    @staticmethod
+    def _topological_order(steps: list[dict]) -> list[dict]:
+        """Order steps so each runs after the steps listed in its depends_on.
+
+        Stable: among steps that are equally ready, preserves the original
+        plan order. Falls back to appending any steps left over from a cycle
+        or a dependency on a step number that doesn't exist in the plan,
+        rather than dropping them silently.
+        """
+        remaining = list(steps)
+        done: set[int] = set()
+        ordered: list[dict] = []
+
+        while remaining:
+            ready_index = None
+            for i, step in enumerate(remaining):
+                depends_on = step.get("depends_on", []) or []
+                if all(d in done for d in depends_on):
+                    ready_index = i
+                    break
+
+            if ready_index is None:
+                ordered.extend(remaining)
+                break
+
+            step = remaining.pop(ready_index)
+            ordered.append(step)
+            step_number = step.get("step")
+            if step_number is not None:
+                done.add(step_number)
+
+        return ordered
 
     async def _get_or_create_agent(self, role: str, user_id: uuid.UUID, org_id: uuid.UUID | None) -> AgentProfile:
         result = await self.db.execute(
@@ -119,8 +196,7 @@ class AgentOrchestrator:
             status="active",
             user_id=user_id,
             organization_id=org_id,
-            is_template=True,
-            template_category="auto_generated",
+            is_template=False,
         )
         self.db.add(agent)
         await self.db.flush()
@@ -149,6 +225,3 @@ class AgentOrchestrator:
 
         await self.db.commit()
         return team
-
-
-agent_orchestrator = AgentOrchestrator  # type: ignore[valid-type]

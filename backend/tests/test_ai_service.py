@@ -2,7 +2,14 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from app.core.exceptions import AIServiceError, ProviderOverloadedError, ProviderRateLimitError
-from app.services.ai_service import AIService, NVIDIAProvider, OpenAIProvider, AnthropicProvider, retry_with_backoff
+from app.services.ai_service import (
+    AIService,
+    NVIDIAProvider,
+    NVIDIA_NIM_FEATURED_MODELS,
+    OpenAIProvider,
+    AnthropicProvider,
+    retry_with_backoff,
+)
 
 
 @pytest.mark.asyncio
@@ -110,6 +117,11 @@ class TestAIProvider:
             await provider.chat_completion(
                 messages=[{"role": "user", "content": "test"}],
             )
+
+    def test_nvidia_featured_models_nonempty_and_namespaced(self):
+        assert len(NVIDIA_NIM_FEATURED_MODELS) > 0
+        assert all("/" in m for m in NVIDIA_NIM_FEATURED_MODELS)
+        assert "thinkingmachines/inkling" in NVIDIA_NIM_FEATURED_MODELS
 
 
 @pytest.mark.asyncio

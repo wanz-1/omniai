@@ -15,6 +15,7 @@ from app.core.dependencies import get_current_user
 from app.models.agent import AgentProfile, AgentMemory, AgentTask
 from app.models.agent_network import AgentPermission, AgentTaskDelegation, AgentTeamMember
 from app.models.user import User
+from app.services.agent_orchestrator import AgentOrchestrator
 from app.services.ai_service import ai_service
 
 AGENTS = "/api/v1/agents"
@@ -516,3 +517,128 @@ async def test_orchestrate_creates_plan_and_executes(stateful_client):
     agents = db.objects_of(AgentProfile)
     assert any(a.role == "researcher" for a in agents)
     assert any(a.role == "developer" for a in agents)
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# AGENT ORCHESTRATOR — UNIT TESTS
+# ═══════════════════════════════════════════════════════════════════════════
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_get_or_create_agent_reuses_existing_agent(stateful_client):
+    """Auto-created agents must be findable on the next call, not duplicated.
+
+    Regression test: the auto-created agent used to be stamped is_template=True
+    while the lookup query filtered on is_template == False, so every call
+    created a fresh duplicate agent instead of reusing the one just made.
+    """
+    _, db = stateful_client
+    user = await _user(db, "orch-reuse@example.com")
+
+    orchestrator = AgentOrchestrator(db)
+    first = await orchestrator._get_or_create_agent("researcher", user.id, None)
+    second = await orchestrator._get_or_create_agent("researcher", user.id, None)
+
+    assert first.id == second.id
+    assert first.is_template is False
+    matching = [a for a in db.objects_of(AgentProfile) if a.role == "researcher"]
+    assert len(matching) == 1
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_auto_created_agent_not_publicly_listed_as_template(stateful_client):
+    """Orchestrator-created agents must not leak into the public template gallery.
+
+    GET /agents/templates has no ownership filter and returns every
+    is_template=True row for every user, so an auto-created agent flagged as
+    a template would appear in every other user's marketplace browsing.
+    """
+    _, db = stateful_client
+    user = await _user(db, "orch-privacy@example.com")
+
+    orchestrator = AgentOrchestrator(db)
+    agent = await orchestrator._get_or_create_agent("finance_officer", user.id, None)
+
+    assert agent.is_template is False
+
+
+@pytest.mark.unit
+def test_topological_order_respects_dependencies():
+    steps = [
+        {"step": 1, "agent_role": "researcher", "task": "research", "depends_on": []},
+        {"step": 3, "agent_role": "qa_engineer", "task": "review", "depends_on": [2]},
+        {"step": 2, "agent_role": "developer", "task": "build", "depends_on": [1]},
+    ]
+    ordered = AgentOrchestrator._topological_order(steps)
+    assert [s["step"] for s in ordered] == [1, 2, 3]
+
+
+@pytest.mark.unit
+def test_topological_order_stable_for_independent_steps():
+    """Steps with no ordering constraint between them keep plan order."""
+    steps = [
+        {"step": 1, "agent_role": "researcher", "task": "a", "depends_on": []},
+        {"step": 2, "agent_role": "designer", "task": "b", "depends_on": []},
+        {"step": 3, "agent_role": "developer", "task": "c", "depends_on": []},
+    ]
+    ordered = AgentOrchestrator._topological_order(steps)
+    assert [s["step"] for s in ordered] == [1, 2, 3]
+
+
+@pytest.mark.unit
+def test_topological_order_falls_back_on_cycle():
+    """A cyclic or unsatisfiable dependency graph must not hang; degrade gracefully."""
+    steps = [
+        {"step": 1, "agent_role": "researcher", "task": "a", "depends_on": [2]},
+        {"step": 2, "agent_role": "developer", "task": "b", "depends_on": [1]},
+    ]
+    ordered = AgentOrchestrator._topological_order(steps)
+    assert {s["step"] for s in ordered} == {1, 2}
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_execute_plan_skips_steps_with_unmet_dependencies(stateful_client):
+    """A step depending on one that never ran must be skipped, not silently run."""
+    _, db = stateful_client
+    user = await _user(db, "orch-skip@example.com")
+
+    plan = {
+        "plan": [
+            {"step": 1, "agent_role": "researcher", "task": "research", "depends_on": [99]},
+        ]
+    }
+    orchestrator = AgentOrchestrator(db)
+    with _mock_complete("unused"):
+        result = await orchestrator.execute_plan(plan, "task", user.id, None)
+
+    assert result["steps_completed"] == 0
+    assert result["execution_log"][0]["status"] == "skipped"
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_execute_plan_records_failed_step_and_continues(stateful_client):
+    """A provider failure on one step must not abort the whole plan."""
+    _, db = stateful_client
+    user = await _user(db, "orch-fail@example.com")
+
+    plan = {
+        "plan": [
+            {"step": 1, "agent_role": "researcher", "task": "research", "depends_on": []},
+            {"step": 2, "agent_role": "developer", "task": "build", "depends_on": []},
+        ]
+    }
+    orchestrator = AgentOrchestrator(db)
+    with patch.object(
+        ai_service,
+        "complete",
+        new=AsyncMock(side_effect=[RuntimeError("provider down"), {"content": "built", "tokens_used": 10}]),
+    ):
+        result = await orchestrator.execute_plan(plan, "task", user.id, None)
+
+    statuses = {log["step"]: log["status"] for log in result["execution_log"]}
+    assert statuses[1] == "failed"
+    assert statuses[2] == "completed"
+    assert result["steps_completed"] == 1

@@ -77,6 +77,7 @@ class AIModelProvider(StrEnum):
     DEEPSEEK = "deepseek"
     MISTRAL = "mistral"
     OPENROUTER = "openrouter"
+    NVIDIA = "nvidia"
     OLLAMA = "ollama"
     VLLM = "vllm"
 
