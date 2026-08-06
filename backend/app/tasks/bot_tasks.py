@@ -5,7 +5,13 @@ from app.tasks.celery_app import celery_app
 from app.tasks.session import run, session_cm
 
 
-@celery_app.task(bind=True, max_retries=3)
+@celery_app.task(
+    bind=True,
+    max_retries=3,
+    retry_backoff=True,
+    retry_backoff_max=600,
+    retry_jitter=True,
+)
 def train_bot_knowledge_base(self, bot_id: str):
     async def _train():
         from app.models.bot import Bot

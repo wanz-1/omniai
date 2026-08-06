@@ -43,3 +43,11 @@ def test_background_tasks_declare_max_retries():
     for name in RETRYING_TASKS:
         task = celery_app.tasks[name]
         assert task.max_retries == 3, f"{name} must declare max_retries=3"
+
+
+def test_background_tasks_declare_retry_backoff():
+    for name in RETRYING_TASKS:
+        task = celery_app.tasks[name]
+        assert task.retry_backoff is True, f"{name} must declare retry_backoff=True"
+        assert task.retry_backoff_max == 600, f"{name} must cap retry backoff"
+        assert task.retry_jitter is True, f"{name} must jitter retry backoff"

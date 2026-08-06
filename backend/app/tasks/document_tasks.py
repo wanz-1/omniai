@@ -4,7 +4,13 @@ from app.tasks.celery_app import celery_app
 from app.tasks.session import run, session_cm
 
 
-@celery_app.task(bind=True, max_retries=3)
+@celery_app.task(
+    bind=True,
+    max_retries=3,
+    retry_backoff=True,
+    retry_backoff_max=600,
+    retry_jitter=True,
+)
 def process_document_humanization(self, document_id: str):
     async def _process():
         from app.core.constants import Tone

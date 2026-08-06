@@ -1,10 +1,18 @@
 import uuid
 
+from sqlalchemy import select
+
 from app.tasks.celery_app import celery_app
 from app.tasks.session import run, session_cm
 
 
-@celery_app.task(bind=True, max_retries=3)
+@celery_app.task(
+    bind=True,
+    max_retries=3,
+    retry_backoff=True,
+    retry_backoff_max=600,
+    retry_jitter=True,
+)
 def build_website(self, website_id: str):
     async def _build():
         from app.core.constants import DeploymentStatus
@@ -32,7 +40,13 @@ def build_website(self, website_id: str):
         raise self.retry(exc=exc)
 
 
-@celery_app.task(bind=True, max_retries=3)
+@celery_app.task(
+    bind=True,
+    max_retries=3,
+    retry_backoff=True,
+    retry_backoff_max=600,
+    retry_jitter=True,
+)
 def deploy_website_task(self, website_id: str, platform: str):
     async def _deploy():
         from app.core.constants import DeploymentStatus
@@ -44,13 +58,25 @@ def deploy_website_task(self, website_id: str, platform: str):
                 raise RuntimeError(f"Website {website_id} not found")
 
             url = f"https://{website_id}.{platform}.omniai.app"
-            deployment = WebsiteDeployment(
-                website_id=website.id,
-                platform=platform,
-                status="deployed",
-                url=url,
-            )
-            db.add(deployment)
+            deployment = (
+                await db.execute(
+                    select(WebsiteDeployment).where(
+                        WebsiteDeployment.website_id == website.id,
+                        WebsiteDeployment.platform == platform,
+                    )
+                )
+            ).scalar_one_or_none()
+            if deployment is None:
+                deployment = WebsiteDeployment(
+                    website_id=website.id,
+                    platform=platform,
+                    status="deployed",
+                    url=url,
+                )
+                db.add(deployment)
+            else:
+                deployment.status = "deployed"
+                deployment.url = url
             website.is_published = True
             website.published_url = url
             website.deployment_status = DeploymentStatus.DEPLOYED
