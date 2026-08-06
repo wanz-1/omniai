@@ -29,7 +29,7 @@ Secrets manager here refers to whatever the deployment target uses (e.g. Docker 
 | `JWT_SECRET` | Auth | placeholder string | Cryptographically random (≥256-bit), stored in secrets manager |
 | `JWT_ALGORITHM` | Auth | `HS256` | Confirm against threat model; consider RS256 if key rotation needed |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` / `REFRESH_TOKEN_EXPIRE_DAYS` | Auth | `30` / `7` | Reviewed, not just inherited from dev |
-| AI provider keys (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_GEMINI_API_KEY`, `DEEPSEEK_API_KEY`, `MISTRAL_API_KEY`, `OPENROUTER_API_KEY`) | AI providers | empty | At least one populated; leave unused ones empty — don't set fake/placeholder values |
+| AI provider keys (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_GEMINI_API_KEY`, `DEEPSEEK_API_KEY`, `MISTRAL_API_KEY`, `OPENROUTER_API_KEY`, `NVIDIA_API_KEY`) | AI providers | empty | At least one populated; leave unused ones empty — don't set fake/placeholder values |
 | `OLLAMA_BASE_URL`, `VLLM_BASE_URL` | Local/self-hosted AI | localhost / empty | Only set if self-hosting models; otherwise leave empty |
 | `QDRANT_URL` | Vector DB | local Qdrant | Managed/secured instance, network-restricted |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | Billing | empty | Required if billing enabled; webhook secret must match the configured endpoint exactly |

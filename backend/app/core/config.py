@@ -57,6 +57,8 @@ class Settings(BaseSettings):
     deepseek_api_key: Optional[str] = None
     mistral_api_key: Optional[str] = None
     openrouter_api_key: Optional[str] = None
+    nvidia_api_key: Optional[str] = None
+    nvidia_base_url: str = "https://integrate.api.nvidia.com/v1"
 
     ollama_base_url: str = "http://localhost:11434"
     vllm_base_url: Optional[str] = None

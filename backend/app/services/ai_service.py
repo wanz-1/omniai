@@ -367,6 +367,77 @@ class DeepSeekProvider(AIProvider):
         raise NotImplementedError("DeepSeek does not provide embeddings API")
 
 
+class NVIDIAProvider(AIProvider):
+    def __init__(self):
+        self.api_key = settings.nvidia_api_key
+        self.base_url = settings.nvidia_base_url
+        self._client = None
+
+    @property
+    def name(self) -> str:
+        return "nvidia"
+
+    def _get_client(self):
+        if self._client is None:
+            import openai
+            self._client = openai.AsyncOpenAI(
+                api_key=self.api_key,
+                base_url=self.base_url,
+                timeout=120.0,
+                max_retries=0,
+            )
+        return self._client
+
+    async def chat_completion(self, messages, model=None, stream=False, temperature=0.7, max_tokens=4096):
+        client = self._get_client()
+        model = model or "thinkingmachines/inkling"
+        if stream:
+            return self._stream_chat(client, model, messages, temperature, max_tokens)
+        try:
+            response = await client.chat.completions.create(
+                model=model, messages=messages, temperature=temperature, max_tokens=max_tokens
+            )
+            return {
+                "content": response.choices[0].message.content or "",
+                "model": model,
+                "tokens_used": response.usage.total_tokens if response.usage else 0,
+                "tokens_prompt": response.usage.prompt_tokens if response.usage else 0,
+                "tokens_completion": response.usage.completion_tokens if response.usage else 0,
+            }
+        except Exception as e:
+            error_str = str(e).lower()
+            if "rate limit" in error_str or "429" in error_str:
+                raise ProviderRateLimitError(provider="nvidia")
+            if "overloaded" in error_str or "503" in error_str:
+                raise ProviderOverloadedError(provider="nvidia")
+            raise AIServiceError(detail=str(e), provider="nvidia")
+
+    async def _stream_chat(self, client, model, messages, temperature, max_tokens):
+        try:
+            stream = await client.chat.completions.create(
+                model=model, messages=messages, temperature=temperature, max_tokens=max_tokens, stream=True
+            )
+            async for chunk in stream:
+                if chunk.choices and chunk.choices[0].delta.content:
+                    yield chunk.choices[0].delta.content
+        except Exception as e:
+            error_str = str(e).lower()
+            if "rate limit" in error_str or "429" in error_str:
+                raise ProviderRateLimitError(provider="nvidia")
+            if "overloaded" in error_str or "503" in error_str:
+                raise ProviderOverloadedError(provider="nvidia")
+            raise AIServiceError(detail=str(e), provider="nvidia")
+
+    async def embeddings(self, texts, model=None):
+        client = self._get_client()
+        model = model or "nvidia/embed-qa-4"
+        try:
+            response = await client.embeddings.create(model=model, input=texts)
+            return [item.embedding for item in response.data]
+        except Exception as e:
+            raise AIServiceError(detail=str(e), provider="nvidia")
+
+
 class MistralProvider(AIProvider):
     def __init__(self):
         self.api_key = settings.mistral_api_key
@@ -423,7 +494,7 @@ class MistralProvider(AIProvider):
             raise AIServiceError(detail=str(e), provider="mistral")
 
 
-PROVIDER_PRIORITY = ["openai", "anthropic", "deepseek", "mistral", "ollama"]
+PROVIDER_PRIORITY = ["openai", "anthropic", "deepseek", "mistral", "nvidia", "ollama"]
 
 
 class AIService:
@@ -437,6 +508,7 @@ class AIService:
             ("anthropic", settings.anthropic_api_key, AnthropicProvider),
             ("deepseek", settings.deepseek_api_key, DeepSeekProvider),
             ("mistral", settings.mistral_api_key, MistralProvider),
+            ("nvidia", settings.nvidia_api_key, NVIDIAProvider),
         ]
         for name, api_key, provider_cls in config_map:
             if api_key:

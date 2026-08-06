@@ -13,6 +13,7 @@ class AIModelRouter:
             "fallback": "claude-3.5-sonnet",
             "cost_optimized": "gpt-4o-mini",
             "local": "ollama/llama3.1",
+            "nvidia": "thinkingmachines/inkling",
         },
         "vision": {
             "primary": "gpt-4o",
@@ -37,15 +38,18 @@ class AIModelRouter:
         "video_summary": {
             "primary": "gpt-4o",
             "fallback": "claude-3.5-sonnet",
+            "nvidia": "thinkingmachines/inkling",
         },
         "embeddings": {
             "primary": "text-embedding-3-large",
             "local": "sentence-transformers/all-MiniLM-L6-v2",
+            "nvidia": "nvidia/embed-qa-4",
         },
         "code": {
             "primary": "claude-3.5-sonnet",
             "fallback": "gpt-4o",
             "local": "ollama/codellama",
+            "nvidia": "thinkingmachines/inkling",
         },
     }
 
@@ -65,6 +69,9 @@ class AIModelRouter:
 
         if prefer_local and "local" in config:
             return {"model": config["local"], "provider": "local", "tier": "local"}
+
+        if self.strategy == "nvidia_first" and "nvidia" in config:
+            return {"model": config["nvidia"], "provider": "nvidia", "tier": "nvidia"}
 
         if self.strategy == "cost_first" and self._monthly_spend > self.cost_budget_monthly * 0.8:
             return {"model": config.get("cost_optimized", config["primary"]), "provider": "cloud", "tier": "cost"}

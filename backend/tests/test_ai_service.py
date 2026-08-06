@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from app.core.exceptions import AIServiceError, ProviderOverloadedError, ProviderRateLimitError
-from app.services.ai_service import AIService, OpenAIProvider, AnthropicProvider, retry_with_backoff
+from app.services.ai_service import AIService, NVIDIAProvider, OpenAIProvider, AnthropicProvider, retry_with_backoff
 
 
 @pytest.mark.asyncio
@@ -56,6 +56,61 @@ class TestAIProvider:
                 messages=[{"role": "user", "content": "test"}],
             )
 
+    async def test_nvidia_provider_complete_with_default_model(self):
+        provider = NVIDIAProvider()
+        mock_client = AsyncMock()
+        mock_response = MagicMock()
+        mock_response.choices = [MagicMock()]
+        mock_response.choices[0].message.content = "Hello from NVIDIA"
+        mock_response.usage.total_tokens = 7
+        mock_response.usage.prompt_tokens = 3
+        mock_response.usage.completion_tokens = 4
+        mock_client.chat.completions.create = AsyncMock(return_value=mock_response)
+        provider._get_client = MagicMock(return_value=mock_client)
+
+        result = await provider.chat_completion(
+            messages=[{"role": "user", "content": "Say hello"}],
+        )
+        assert result["content"] == "Hello from NVIDIA"
+        assert result["model"] == "thinkingmachines/inkling"
+        assert result["tokens_used"] == 7
+
+    async def test_nvidia_provider_uses_openai_compatible_endpoint(self, monkeypatch):
+        import types
+        fake = types.SimpleNamespace(
+            nvidia_api_key="nvapi-test",
+            nvidia_base_url="https://integrate.api.nvidia.com/v1",
+        )
+        monkeypatch.setattr("app.services.ai_service.settings", fake)
+        provider = NVIDIAProvider()
+        assert provider.name == "nvidia"
+        assert provider.api_key == "nvapi-test"
+        assert provider.base_url == "https://integrate.api.nvidia.com/v1"
+
+    async def test_nvidia_provider_rate_limit(self):
+        provider = NVIDIAProvider()
+        mock_client = AsyncMock()
+        mock_client.chat.completions.create = AsyncMock(side_effect=Exception("rate limit"))
+        provider._get_client = MagicMock(return_value=mock_client)
+
+        with pytest.raises(ProviderRateLimitError):
+            await provider.chat_completion(
+                messages=[{"role": "user", "content": "test"}],
+            )
+
+    async def test_nvidia_provider_overloaded(self):
+        provider = NVIDIAProvider()
+        mock_client = AsyncMock()
+        mock_client.chat.completions.create = AsyncMock(
+            side_effect=Exception("503 Service Unavailable")
+        )
+        provider._get_client = MagicMock(return_value=mock_client)
+
+        with pytest.raises(ProviderOverloadedError):
+            await provider.chat_completion(
+                messages=[{"role": "user", "content": "test"}],
+            )
+
 
 @pytest.mark.asyncio
 class TestAIService:
@@ -79,6 +134,22 @@ class TestAIService:
         providers = service._get_provider_fallback_chain("anthropic")
         assert providers[0].name == "anthropic"
         assert providers[1].name == "openai"
+
+    async def test_service_registers_nvidia_provider_when_key_set(self, monkeypatch):
+        import types
+        fake = types.SimpleNamespace(
+            openai_api_key=None,
+            anthropic_api_key=None,
+            deepseek_api_key=None,
+            mistral_api_key=None,
+            nvidia_api_key="nvapi-test",
+            nvidia_base_url="https://integrate.api.nvidia.com/v1",
+            ollama_base_url="http://localhost:11434",
+        )
+        monkeypatch.setattr("app.services.ai_service.settings", fake)
+        svc = AIService()
+        assert "nvidia" in svc.providers
+        assert svc.get_provider("nvidia").name == "nvidia"
 
     async def test_complete_fallback_on_overload(self, service):
         mock_openai = AsyncMock(spec=OpenAIProvider)

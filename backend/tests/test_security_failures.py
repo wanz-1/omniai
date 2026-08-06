@@ -317,6 +317,23 @@ def test_model_router_unknown_capability_defaults_to_chat():
 
 
 @pytest.mark.unit
+def test_model_router_nvidia_first_strategy():
+    router = AIModelRouter(strategy="nvidia_first")
+    choice = router.select_model("chat")
+    assert choice["provider"] == "nvidia"
+    assert choice["tier"] == "nvidia"
+    assert choice["model"] == "thinkingmachines/inkling"
+    assert "thinkingmachines/inkling" in router.get_available_models("chat")
+
+
+@pytest.mark.unit
+def test_model_router_nvidia_first_falls_back_without_nvidia_model():
+    router = AIModelRouter(strategy="nvidia_first")
+    choice = router.select_model("voice_stt")
+    assert choice["model"] == "whisper-1"
+
+
+@pytest.mark.unit
 def test_model_router_available_models_and_voice(monkeypatch):
     import types
     fake_settings = types.SimpleNamespace(VOICE_STT_PROVIDER="whisper", VOICE_TTS_PROVIDER="openai")
