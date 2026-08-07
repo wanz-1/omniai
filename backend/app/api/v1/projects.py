@@ -1,5 +1,5 @@
 import uuid
-from typing import Annotated, Optional
+from typing import Annotated
 
 from fastapi import APIRouter, Depends
 from sqlalchemy import select
@@ -19,7 +19,7 @@ router = APIRouter()
 async def list_projects(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
-    type: Optional[ProjectType] = None,
+    type: ProjectType | None = None,
 ):
     query = select(Project).where(Project.user_id == current_user.id)
     if type:

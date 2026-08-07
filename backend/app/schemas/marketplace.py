@@ -1,7 +1,8 @@
 import uuid
 from datetime import datetime
 from decimal import Decimal
-from pydantic import BaseModel
+
+from pydantic import BaseModel, ConfigDict
 
 
 class MarketplaceItemResponse(BaseModel):
@@ -28,8 +29,7 @@ class MarketplaceItemResponse(BaseModel):
     created_at: datetime | None = None
     updated_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class MarketplaceItemCreateRequest(BaseModel):
@@ -68,5 +68,4 @@ class PurchaseResponse(BaseModel):
     currency: str
     created_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

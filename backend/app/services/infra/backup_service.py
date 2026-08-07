@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,7 +14,7 @@ class InfraBackupService:
         backup = BackupRecord(
             name=name, backup_type=backup_type, target=target,
             status="pending", config=config or {},
-            started_at=datetime.now(timezone.utc),
+            started_at=datetime.now(UTC),
         )
         self.db.add(backup)
         await self.db.commit()
@@ -29,7 +29,7 @@ class InfraBackupService:
         backup.size_bytes = size_bytes
         backup.location = location
         backup.checksum = checksum
-        backup.completed_at = datetime.now(timezone.utc)
+        backup.completed_at = datetime.now(UTC)
         await self.db.commit()
         await self.db.refresh(backup)
         return backup
@@ -40,7 +40,7 @@ class InfraBackupService:
             return None
         backup.status = "failed"
         backup.error_message = error_message
-        backup.completed_at = datetime.now(timezone.utc)
+        backup.completed_at = datetime.now(UTC)
         await self.db.commit()
         return backup
 

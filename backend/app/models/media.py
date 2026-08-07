@@ -1,10 +1,11 @@
 import uuid
 from datetime import datetime
+
 from sqlalchemy import DateTime, Enum, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.core.constants import MediaType, VoiceSessionStatus, VideoJobStatus
+from app.core.constants import MediaType, VideoJobStatus, VoiceSessionStatus
 from app.models.base import Base, TimestampMixin, UUIDMixin
 
 

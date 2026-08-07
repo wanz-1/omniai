@@ -6,7 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.agent_network import AgentPerformance, AgentReview
 from app.services.ai_service import ai_service
 
-
 EVALUATION_SYSTEM_PROMPT = """You are an AI agent evaluator. Review the output of AI agents and provide:
 1. Quality score (0-10)
 2. Accuracy assessment

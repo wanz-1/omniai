@@ -4,7 +4,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.industry_solutions import IndustryAgent
 from app.services.ai_service import ai_service
 
-
 INDUSTRY_SYSTEM_PROMPTS = {
     "ngo": """You are an AI assistant specialized in NGO and development sector work.
 Your expertise includes: grant writing, project proposal development, budgeting, monitoring & evaluation,

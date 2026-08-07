@@ -1,7 +1,9 @@
 import uuid
 from datetime import datetime
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.v5_compliance import CorrectiveAction
 
 
@@ -16,7 +18,9 @@ class CorrectiveActionService:
             status="open", assigned_to=assigned_to, deadline=deadline,
             created_by=created_by,
         )
-        self.db.add(action); await self.db.commit(); await self.db.refresh(action)
+        self.db.add(action)
+        await self.db.commit()
+        await self.db.refresh(action)
         return action
 
     async def update_status(self, action_id: uuid.UUID, status: str, verification_notes: str | None = None) -> CorrectiveAction | None:
@@ -29,5 +33,6 @@ class CorrectiveActionService:
             action.verification_notes = verification_notes
         if status == "completed":
             action.completed_at = datetime.utcnow()
-        await self.db.commit(); await self.db.refresh(action)
+        await self.db.commit()
+        await self.db.refresh(action)
         return action

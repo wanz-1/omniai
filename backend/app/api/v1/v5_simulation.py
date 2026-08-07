@@ -6,20 +6,28 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.dependencies import get_current_user, get_db
 from app.models.user import User
 from app.schemas.v5_simulation import (
-    DigitalTwinResponse, DigitalTwinEntityResponse, ScenarioResponse,
-    SimulationResponse, PredictionResponse, RiskAssessmentResponse,
+    AddEntityRequest,
+    CompareScenariosRequest,
+    CreateDigitalTwinRequest,
+    CreateScenarioRequest,
+    DigitalTwinEntityResponse,
+    DigitalTwinResponse,
+    OptimizationRequest,
+    PredictionResponse,
+    RiskAssessmentResponse,
+    RunSimulationRequest,
+    ScenarioResponse,
     SimulationReportResponse,
-    CreateScenarioRequest, RunSimulationRequest, CompareScenariosRequest,
-    CreateDigitalTwinRequest, AddEntityRequest, OptimizationRequest,
+    SimulationResponse,
 )
-from app.services.simulation_engine.scenario_manager import ScenarioManager
-from app.services.simulation_engine.forecasting_engine import ForecastingEngine
-from app.services.simulation_engine.risk_analysis import RiskAnalysis
-from app.services.simulation_engine.optimization_engine import OptimizationEngine
-from app.services.simulation_engine.financial_modeling import FinancialModeling
-from app.services.simulation_engine.project_simulation import ProjectSimulation
 from app.services.simulation_engine.digital_twin_service import DigitalTwinService
+from app.services.simulation_engine.financial_modeling import FinancialModeling
+from app.services.simulation_engine.forecasting_engine import ForecastingEngine
+from app.services.simulation_engine.optimization_engine import OptimizationEngine
+from app.services.simulation_engine.project_simulation import ProjectSimulation
 from app.services.simulation_engine.reporting_engine import ReportingEngine
+from app.services.simulation_engine.risk_analysis import RiskAnalysis
+from app.services.simulation_engine.scenario_manager import ScenarioManager
 from app.services.simulation_engine.simulation_analytics import SimulationAnalytics
 
 router = APIRouter()
@@ -34,9 +42,11 @@ async def create_scenario(req: CreateScenarioRequest, current_user: User = Depen
 @router.get("/scenarios", response_model=list[ScenarioResponse])
 async def list_scenarios(scenario_type: str | None = None, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     from sqlalchemy import select
+
     from app.models.v5_simulation import Scenario
     q = select(Scenario).where(Scenario.organization_id == (current_user.organization_id or current_user.id))
-    if scenario_type: q = q.where(Scenario.scenario_type == scenario_type)
+    if scenario_type:
+        q = q.where(Scenario.scenario_type == scenario_type)
     q = q.order_by(Scenario.created_at.desc())
     rows = await db.execute(q)
     return list(rows.scalars().all())
@@ -52,13 +62,15 @@ async def run_simulation(req: RunSimulationRequest, current_user: User = Depends
 async def get_simulation_results(simulation_id: uuid.UUID, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     from app.models.v5_simulation import Simulation
     sim = await db.get(Simulation, simulation_id)
-    if not sim: return {"error": "not_found"}
+    if not sim:
+        return {"error": "not_found"}
     return {"id": str(sim.id), "status": sim.status, "output_data": sim.output_data, "started_at": sim.started_at.isoformat() if sim.started_at else None, "completed_at": sim.completed_at.isoformat() if sim.completed_at else None}
 
 
 @router.get("/simulations", response_model=list[SimulationResponse])
 async def list_simulations(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     from sqlalchemy import select
+
     from app.models.v5_simulation import Simulation
     rows = await db.execute(select(Simulation).where(Simulation.organization_id == (current_user.organization_id or current_user.id)).order_by(Simulation.started_at.desc()))
     return list(rows.scalars().all())

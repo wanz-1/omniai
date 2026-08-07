@@ -1,9 +1,9 @@
-import uuid
 import logging
-from datetime import datetime, timezone, timedelta
+import uuid
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from sqlalchemy import select, func, desc
+from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.v6_governance import ModelMetric
@@ -29,7 +29,7 @@ class ModelMonitoringService:
         cost: float = 0.0,
         quality_score: float | None = None,
     ) -> None:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         period_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
 
         result = await self.db.execute(

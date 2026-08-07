@@ -1,11 +1,11 @@
-import uuid
 import logging
-from datetime import datetime, timezone, timedelta
+import uuid
+from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import select, desc
+from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.v6_governance import HumanReview, AIDecision
+from app.models.v6_governance import AIDecision, HumanReview
 
 logger = logging.getLogger("omniai.governance.approval")
 
@@ -56,7 +56,7 @@ class ApprovalWorkflowService:
             risk_level=risk_level,
             input_summary=input_summary[:500] or None,
             output_summary=output_summary[:500] or None,
-            expires_at=datetime.now(timezone.utc) + timedelta(hours=expires_hours),
+            expires_at=datetime.now(UTC) + timedelta(hours=expires_hours),
         )
         self.db.add(review)
         await self.db.flush()
@@ -88,7 +88,7 @@ class ApprovalWorkflowService:
         review.status = "approved"
         review.decision = "approve"
         review.comments = comments or None
-        review.reviewed_at = datetime.now(timezone.utc)
+        review.reviewed_at = datetime.now(UTC)
 
         if review.decision_id:
             result2 = await self.db.execute(
@@ -112,7 +112,7 @@ class ApprovalWorkflowService:
         review.status = "rejected"
         review.decision = "reject"
         review.comments = comments or None
-        review.reviewed_at = datetime.now(timezone.utc)
+        review.reviewed_at = datetime.now(UTC)
 
         if review.decision_id:
             result2 = await self.db.execute(

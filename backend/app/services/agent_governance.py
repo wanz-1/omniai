@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,7 +18,7 @@ class AgentGovernanceService:
                 AgentPermission.agent_id == agent_id,
                 AgentPermission.resource == resource,
                 AgentPermission.action == action,
-                AgentPermission.is_active == True,
+                AgentPermission.is_active.is_(True),
             ).limit(1)
         )
         perm = result.scalar_one_or_none()
@@ -63,7 +63,7 @@ class AgentGovernanceService:
         result = await self.db.execute(
             select(AgentPermission).where(
                 AgentPermission.agent_id == agent_id,
-                AgentPermission.is_active == True,
+                AgentPermission.is_active.is_(True),
             )
         )
         return list(result.scalars().all())
@@ -72,7 +72,7 @@ class AgentGovernanceService:
         result = await self.db.execute(
             select(AgentPermission).where(
                 AgentPermission.team_id == team_id,
-                AgentPermission.is_active == True,
+                AgentPermission.is_active.is_(True),
             )
         )
         return list(result.scalars().all())
@@ -121,5 +121,5 @@ class AgentGovernanceService:
             "resource": resource,
             "status": status,
             "details": details or {},
-            "timestamp": log_entry.created_at.isoformat() if log_entry.created_at else datetime.now(timezone.utc).isoformat(),
+            "timestamp": log_entry.created_at.isoformat() if log_entry.created_at else datetime.now(UTC).isoformat(),
         }

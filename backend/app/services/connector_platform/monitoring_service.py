@@ -1,8 +1,11 @@
 import uuid
-from sqlalchemy import select, func
+
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.v5_connector_platform import (
-    ConnectorLog, ConnectorPermission,
+    ConnectorLog,
+    ConnectorPermission,
 )
 from app.services.ai_service import ai_service
 
@@ -29,7 +32,9 @@ class MonitoringService:
             principal_type=principal_type, principal_id=principal_id,
             permission=permission, granted_by=granted_by,
         )
-        self.db.add(perm); await self.db.commit(); await self.db.refresh(perm)
+        self.db.add(perm)
+        await self.db.commit()
+        await self.db.refresh(perm)
         self.db.add(ConnectorLog(
             integration_id=integration_id, organization_id=org_id,
             level="info", action="grant_permission", message=f"Granted {permission} to {principal_type}:{principal_id}",
@@ -50,7 +55,7 @@ class MonitoringService:
         rows = await self.db.execute(
             select(ConnectorPermission).where(
                 ConnectorPermission.integration_id == integration_id,
-                ConnectorPermission.is_active == True,
+                ConnectorPermission.is_active.is_(True),
             )
         )
         return list(rows.scalars().all())
@@ -77,7 +82,7 @@ class MonitoringService:
         perms_q = await self.db.execute(
             select(func.count(ConnectorPermission.id)).where(
                 ConnectorPermission.organization_id == org_id,
-                ConnectorPermission.is_active == True,
+                ConnectorPermission.is_active.is_(True),
             )
         )
         total_perms = perms_q.scalar() or 0
@@ -91,6 +96,6 @@ class MonitoringService:
 
     async def analyze_logs(self, org_id: uuid.UUID) -> str:
         logs = await self.get_logs(org_id=org_id, level="error", limit=20)
-        log_text = "\n".join([f"[{l.created_at}] {l.action}: {l.message or ''}" for l in logs])
+        log_text = "\n".join([f"[{log.created_at}] {log.action}: {log.message or ''}" for log in logs])
         prompt = f"Analyze these connector logs for patterns, recurring issues, and recommendations:\n\n{log_text}"
         return await ai_service.complete(prompt) or "No analysis available."

@@ -1,8 +1,7 @@
 import uuid
 from datetime import datetime
-from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class OrganizationCreateRequest(BaseModel):
@@ -11,9 +10,9 @@ class OrganizationCreateRequest(BaseModel):
 
 
 class OrganizationUpdateRequest(BaseModel):
-    name: Optional[str] = Field(None, min_length=1, max_length=200)
-    logo_url: Optional[str] = None
-    settings: Optional[dict] = None
+    name: str | None = Field(None, min_length=1, max_length=200)
+    logo_url: str | None = None
+    settings: dict | None = None
 
 
 class OrganizationMemberAddRequest(BaseModel):
@@ -28,20 +27,18 @@ class OrganizationMemberResponse(BaseModel):
     role: str
     joined_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class OrganizationResponse(BaseModel):
     id: uuid.UUID
     name: str
     slug: str
-    logo_url: Optional[str] = None
+    logo_url: str | None = None
     plan: str
     is_active: bool
     member_count: int = 0
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

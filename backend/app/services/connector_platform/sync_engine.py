@@ -1,13 +1,16 @@
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import httpx
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.v5_connector_platform import (
-    ConnectorIntegration, ConnectorDefinition, SyncJob, ConnectorLog,
+    ConnectorDefinition,
+    ConnectorIntegration,
+    ConnectorLog,
+    SyncJob,
 )
 
 logger = logging.getLogger("omniai.connector.sync")
@@ -24,7 +27,7 @@ class SyncEngine:
             raise ValueError("Integration not found")
         job = SyncJob(
             integration_id=integration_id, organization_id=integ.organization_id,
-            sync_type=sync_type, status="running", started_at=datetime.now(timezone.utc),
+            sync_type=sync_type, status="running", started_at=datetime.now(UTC),
             items_total=0, items_processed=0, items_failed=0,
             items_created=0, items_updated=0, items_deleted=0,
             error_log=[],
@@ -32,7 +35,7 @@ class SyncEngine:
         self.db.add(job)
         await self.db.commit()
         await self.db.refresh(job)
-        integ.last_sync_at = datetime.now(timezone.utc)
+        integ.last_sync_at = datetime.now(UTC)
         await self.db.commit()
         log = ConnectorLog(
             integration_id=integ.id, organization_id=integ.organization_id,
@@ -48,7 +51,7 @@ class SyncEngine:
         if not job:
             return None
         job.status = "completed"
-        job.completed_at = datetime.now(timezone.utc)
+        job.completed_at = datetime.now(UTC)
         if stats:
             job.items_total = stats.get("total", 0)
             job.items_processed = stats.get("processed", 0)

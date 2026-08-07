@@ -6,8 +6,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.dependencies import get_current_user, get_db
 from app.models.user import User
 from app.schemas.v5_knowledge import (
-    KnowledgeConnectorV5Response, KnowledgeDocumentV5Response,
-    SearchRequest, SearchResponse, KnowledgeGraphQuery, ConnectSourceRequest,
+    ConnectSourceRequest,
+    KnowledgeConnectorV5Response,
+    KnowledgeDocumentV5Response,
+    KnowledgeGraphQuery,
+    SearchRequest,
+    SearchResponse,
 )
 from app.services.knowledge_intelligence.connector_base import BaseConnector
 from app.services.knowledge_intelligence.indexing_service import IndexingService

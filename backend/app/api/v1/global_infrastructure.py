@@ -4,19 +4,32 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.dependencies import get_current_user
-from app.core.dependencies import get_db
+from app.core.dependencies import get_current_user, get_db
 from app.models.global_infrastructure import (
-    AIModelRegistry, BackupRecord, ClusterDeployment, DeveloperApiKey, InfrastructureRegion,
-    SecurityEvent, ServiceDeployment,
+    AIModelRegistry,
+    BackupRecord,
+    ClusterDeployment,
+    DeveloperApiKey,
+    InfrastructureRegion,
+    SecurityEvent,
+    ServiceDeployment,
 )
 from app.models.user import User
 from app.schemas.global_infrastructure import (
-    BackupRecordResponse, ClusterResponse, ComplianceReportResponse,
-    DataResidencyResponse, DeveloperApiKeyCreate, DeveloperApiKeyResponse,
-    ModelRegistryResponse, ModelRouteRequest, ModelRouteResponse,
-    MonitoringMetricResponse, OrganizationPolicyResponse, RegionResponse,
-    SecurityEventResponse, ServiceDeploymentResponse,
+    BackupRecordResponse,
+    ClusterResponse,
+    ComplianceReportResponse,
+    DataResidencyResponse,
+    DeveloperApiKeyCreate,
+    DeveloperApiKeyResponse,
+    ModelRegistryResponse,
+    ModelRouteRequest,
+    ModelRouteResponse,
+    MonitoringMetricResponse,
+    OrganizationPolicyResponse,
+    RegionResponse,
+    SecurityEventResponse,
+    ServiceDeploymentResponse,
 )
 from app.services.infra.backup_service import InfraBackupService
 from app.services.infra.compliance_engine import InfraComplianceEngine
@@ -264,7 +277,8 @@ async def list_data_residency(organization_id: uuid.UUID, current_user: User = D
 
 @router.post("/api-keys/{organization_id}", response_model=DeveloperApiKeyResponse)
 async def create_api_key(organization_id: uuid.UUID, req: DeveloperApiKeyCreate, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    import hashlib, secrets
+    import hashlib
+    import secrets
     key = f"omni_{secrets.token_hex(24)}"
     key_prefix = key[:10]
     dev_key = DeveloperApiKey(
@@ -305,7 +319,7 @@ async def infrastructure_dashboard(current_user: User = Depends(get_current_user
     cluster_count = (await db.execute(select(func.count(ClusterDeployment.id)))).scalar() or 0
     svc_count = (await db.execute(select(func.count(ServiceDeployment.id)))).scalar() or 0
     model_count = (await db.execute(select(func.count(AIModelRegistry.id)))).scalar() or 0
-    event_count = (await db.execute(select(func.count(SecurityEvent.id)).where(SecurityEvent.is_resolved == False))).scalar() or 0
+    event_count = (await db.execute(select(func.count(SecurityEvent.id)).where(SecurityEvent.is_resolved.is_(False)))).scalar() or 0
     backup_count = (await db.execute(select(func.count(BackupRecord.id)))).scalar() or 0
     return {
         "stats": {

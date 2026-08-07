@@ -3,7 +3,8 @@ import json
 import logging
 import time
 from abc import ABC, abstractmethod
-from typing import Any, AsyncGenerator, Optional
+from collections.abc import AsyncGenerator
+from typing import Any
 
 from app.core.config import settings
 from app.core.exceptions import (
@@ -22,8 +23,8 @@ def estimate_tokens(text: str) -> int:
 
 def normalize_messages(
     messages: Any,
-    prompt: Optional[str] = None,
-    system_prompt: Optional[str] = None,
+    prompt: str | None = None,
+    system_prompt: str | None = None,
 ) -> list[dict[str, str]]:
     if messages is None:
         messages = prompt
@@ -71,7 +72,7 @@ async def retry_with_backoff(
                 await asyncio.sleep(delay + jitter)
         except Exception:
             raise
-    raise last_exception
+    raise last_exception from None
 
 
 class AIProvider(ABC):
@@ -79,25 +80,25 @@ class AIProvider(ABC):
     async def chat_completion(
         self,
         messages: list[dict[str, str]],
-        model: Optional[str] = None,
+        model: str | None = None,
         stream: bool = False,
         temperature: float = 0.7,
         max_tokens: int = 4096,
     ) -> dict[str, Any] | AsyncGenerator[str, None]:
-        raise NotImplementedError
+        raise NotImplementedError from None
 
     @abstractmethod
     async def embeddings(
         self,
         texts: list[str],
-        model: Optional[str] = None,
+        model: str | None = None,
     ) -> list[list[float]]:
-        raise NotImplementedError
+        raise NotImplementedError from None
 
     @property
     @abstractmethod
     def name(self) -> str:
-        raise NotImplementedError
+        raise NotImplementedError from None
 
 
 class OpenAIProvider(AIProvider):
@@ -142,10 +143,10 @@ class OpenAIProvider(AIProvider):
         except Exception as e:
             error_str = str(e).lower()
             if "rate limit" in error_str:
-                raise ProviderRateLimitError(provider="openai")
+                raise ProviderRateLimitError(provider="openai") from e
             if "overloaded" in error_str or "503" in error_str:
-                raise ProviderOverloadedError(provider="openai")
-            raise AIServiceError(detail=str(e), provider="openai")
+                raise ProviderOverloadedError(provider="openai") from e
+            raise AIServiceError(detail=str(e), provider="openai") from e
 
     async def _stream_chat(self, client, model, messages, temperature, max_tokens):
         try:
@@ -158,10 +159,10 @@ class OpenAIProvider(AIProvider):
         except Exception as e:
             error_str = str(e).lower()
             if "rate limit" in error_str:
-                raise ProviderRateLimitError(provider="openai")
+                raise ProviderRateLimitError(provider="openai") from e
             if "overloaded" in error_str or "503" in error_str:
-                raise ProviderOverloadedError(provider="openai")
-            raise AIServiceError(detail=str(e), provider="openai")
+                raise ProviderOverloadedError(provider="openai") from e
+            raise AIServiceError(detail=str(e), provider="openai") from e
 
     async def embeddings(self, texts, model=None):
         client = self._get_aclient()
@@ -170,7 +171,7 @@ class OpenAIProvider(AIProvider):
             response = await client.embeddings.create(model=model, input=texts)
             return [item.embedding for item in response.data]
         except Exception as e:
-            raise AIServiceError(detail=str(e), provider="openai")
+            raise AIServiceError(detail=str(e), provider="openai") from e
 
 
 class AnthropicProvider(AIProvider):
@@ -215,10 +216,10 @@ class AnthropicProvider(AIProvider):
         except Exception as e:
             error_str = str(e).lower()
             if "rate limit" in error_str:
-                raise ProviderRateLimitError(provider="anthropic")
+                raise ProviderRateLimitError(provider="anthropic") from e
             if "overloaded" in error_str or "529" in error_str:
-                raise ProviderOverloadedError(provider="anthropic")
-            raise AIServiceError(detail=str(e), provider="anthropic")
+                raise ProviderOverloadedError(provider="anthropic") from e
+            raise AIServiceError(detail=str(e), provider="anthropic") from e
 
     async def _stream_chat(self, client, model, system, messages, temperature, max_tokens):
         try:
@@ -230,13 +231,13 @@ class AnthropicProvider(AIProvider):
         except Exception as e:
             error_str = str(e).lower()
             if "rate limit" in error_str:
-                raise ProviderRateLimitError(provider="anthropic")
+                raise ProviderRateLimitError(provider="anthropic") from e
             if "overloaded" in error_str or "529" in error_str:
-                raise ProviderOverloadedError(provider="anthropic")
-            raise AIServiceError(detail=str(e), provider="anthropic")
+                raise ProviderOverloadedError(provider="anthropic") from e
+            raise AIServiceError(detail=str(e), provider="anthropic") from e
 
     async def embeddings(self, texts, model=None):
-        raise NotImplementedError("Anthropic does not provide embeddings API")
+        raise NotImplementedError("Anthropic does not provide embeddings API") from None
 
 
 class OllamaProvider(AIProvider):
@@ -273,12 +274,12 @@ class OllamaProvider(AIProvider):
                 }
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 429:
-                raise ProviderRateLimitError(provider="ollama")
+                raise ProviderRateLimitError(provider="ollama") from e
             if e.response.status_code >= 500:
-                raise ProviderOverloadedError(provider="ollama")
-            raise AIServiceError(detail=str(e), provider="ollama")
+                raise ProviderOverloadedError(provider="ollama") from e
+            raise AIServiceError(detail=str(e), provider="ollama") from e
         except Exception as e:
-            raise AIServiceError(detail=str(e), provider="ollama")
+            raise AIServiceError(detail=str(e), provider="ollama") from e
 
     async def _stream_chat(self, client, url, payload):
         import httpx
@@ -293,10 +294,10 @@ class OllamaProvider(AIProvider):
                         yield data.get("message", {}).get("content", "")
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 429:
-                raise ProviderRateLimitError(provider="ollama")
+                raise ProviderRateLimitError(provider="ollama") from e
             if e.response.status_code >= 500:
-                raise ProviderOverloadedError(provider="ollama")
-            raise AIServiceError(detail=str(e), provider="ollama")
+                raise ProviderOverloadedError(provider="ollama") from e
+            raise AIServiceError(detail=str(e), provider="ollama") from e
 
     async def embeddings(self, texts, model=None):
         import httpx
@@ -310,7 +311,7 @@ class OllamaProvider(AIProvider):
                 data = response.json()
                 return data.get("embeddings", [])
         except Exception as e:
-            raise AIServiceError(detail=str(e), provider="ollama")
+            raise AIServiceError(detail=str(e), provider="ollama") from e
 
 
 class DeepSeekProvider(AIProvider):
@@ -350,7 +351,7 @@ class DeepSeekProvider(AIProvider):
                 "tokens_completion": response.usage.completion_tokens if response.usage else 0,
             }
         except Exception as e:
-            raise AIServiceError(detail=str(e), provider="deepseek")
+            raise AIServiceError(detail=str(e), provider="deepseek") from e
 
     async def _stream_chat(self, client, model, messages, temperature, max_tokens):
         try:
@@ -361,10 +362,10 @@ class DeepSeekProvider(AIProvider):
                 if chunk.choices and chunk.choices[0].delta.content:
                     yield chunk.choices[0].delta.content
         except Exception as e:
-            raise AIServiceError(detail=str(e), provider="deepseek")
+            raise AIServiceError(detail=str(e), provider="deepseek") from e
 
     async def embeddings(self, texts, model=None):
-        raise NotImplementedError("DeepSeek does not provide embeddings API")
+        raise NotImplementedError("DeepSeek does not provide embeddings API") from None
 
 
 class NVIDIAProvider(AIProvider):
@@ -407,10 +408,10 @@ class NVIDIAProvider(AIProvider):
         except Exception as e:
             error_str = str(e).lower()
             if "rate limit" in error_str or "429" in error_str:
-                raise ProviderRateLimitError(provider="nvidia")
+                raise ProviderRateLimitError(provider="nvidia") from e
             if "overloaded" in error_str or "503" in error_str:
-                raise ProviderOverloadedError(provider="nvidia")
-            raise AIServiceError(detail=str(e), provider="nvidia")
+                raise ProviderOverloadedError(provider="nvidia") from e
+            raise AIServiceError(detail=str(e), provider="nvidia") from e
 
     async def _stream_chat(self, client, model, messages, temperature, max_tokens):
         try:
@@ -423,10 +424,10 @@ class NVIDIAProvider(AIProvider):
         except Exception as e:
             error_str = str(e).lower()
             if "rate limit" in error_str or "429" in error_str:
-                raise ProviderRateLimitError(provider="nvidia")
+                raise ProviderRateLimitError(provider="nvidia") from e
             if "overloaded" in error_str or "503" in error_str:
-                raise ProviderOverloadedError(provider="nvidia")
-            raise AIServiceError(detail=str(e), provider="nvidia")
+                raise ProviderOverloadedError(provider="nvidia") from e
+            raise AIServiceError(detail=str(e), provider="nvidia") from e
 
     async def embeddings(self, texts, model=None):
         client = self._get_client()
@@ -435,7 +436,7 @@ class NVIDIAProvider(AIProvider):
             response = await client.embeddings.create(model=model, input=texts)
             return [item.embedding for item in response.data]
         except Exception as e:
-            raise AIServiceError(detail=str(e), provider="nvidia")
+            raise AIServiceError(detail=str(e), provider="nvidia") from e
 
 
 # Curated subset of the NVIDIA NIM catalog (build.nvidia.com/models) known to
@@ -495,7 +496,7 @@ class MistralProvider(AIProvider):
                 "tokens_completion": response.usage.completion_tokens if response.usage else 0,
             }
         except Exception as e:
-            raise AIServiceError(detail=str(e), provider="mistral")
+            raise AIServiceError(detail=str(e), provider="mistral") from e
 
     async def _stream_chat(self, client, model, messages, temperature, max_tokens):
         try:
@@ -506,7 +507,7 @@ class MistralProvider(AIProvider):
                 if chunk.data.choices and chunk.data.choices[0].delta.content:
                     yield chunk.data.choices[0].delta.content
         except Exception as e:
-            raise AIServiceError(detail=str(e), provider="mistral")
+            raise AIServiceError(detail=str(e), provider="mistral") from e
 
     async def embeddings(self, texts, model=None):
         client = self._get_client()
@@ -515,7 +516,7 @@ class MistralProvider(AIProvider):
             response = await client.embeddings.create_async(model=model, inputs=texts)
             return [item.embedding for item in response.data]
         except Exception as e:
-            raise AIServiceError(detail=str(e), provider="mistral")
+            raise AIServiceError(detail=str(e), provider="mistral") from e
 
 
 PROVIDER_PRIORITY = ["openai", "anthropic", "deepseek", "mistral", "nvidia", "ollama"]
@@ -539,15 +540,15 @@ class AIService:
                 self.providers[name] = provider_cls()
         self.providers["ollama"] = OllamaProvider()
 
-    def get_provider(self, preferred: Optional[str] = None) -> AIProvider:
+    def get_provider(self, preferred: str | None = None) -> AIProvider:
         if preferred and preferred in self.providers:
             return self.providers[preferred]
         for name in PROVIDER_PRIORITY:
             if name in self.providers:
                 return self.providers[name]
-        raise AIServiceError(detail="No AI provider configured. Set at least one API key.")
+        raise AIServiceError(detail="No AI provider configured. Set at least one API key.") from None
 
-    def _get_provider_fallback_chain(self, preferred: Optional[str] = None) -> list[AIProvider]:
+    def _get_provider_fallback_chain(self, preferred: str | None = None) -> list[AIProvider]:
         chain = []
         seen = set()
         if preferred and preferred in self.providers:
@@ -562,22 +563,22 @@ class AIService:
     async def complete(
         self,
         messages: Any = None,
-        model: Optional[str] = None,
+        model: str | None = None,
         stream: bool = False,
         temperature: float = 0.7,
         max_tokens: int = 4096,
-        provider: Optional[str] = None,
+        provider: str | None = None,
         user_id: str = "",
         enable_metrics: bool = True,
         enable_retry: bool = True,
-        prompt: Optional[str] = None,
-        system_prompt: Optional[str] = None,
+        prompt: str | None = None,
+        system_prompt: str | None = None,
     ):
         string_input = prompt is not None or isinstance(messages, str)
         messages = normalize_messages(messages, prompt=prompt, system_prompt=system_prompt)
         providers = self._get_provider_fallback_chain(provider)
         if not providers:
-            raise AIServiceError(detail="No AI provider configured. Set at least one API key.")
+            raise AIServiceError(detail="No AI provider configured. Set at least one API key.") from None
 
         last_error = None
         for p in providers:
@@ -638,24 +639,24 @@ class AIService:
                 continue
 
         detail = f"All AI providers failed: {last_error}" if last_error else "All AI providers failed"
-        raise AIServiceError(detail=detail)
+        raise AIServiceError(detail=detail) from None
 
     async def complete_stream(
         self,
         messages: Any = None,
-        model: Optional[str] = None,
+        model: str | None = None,
         temperature: float = 0.7,
         max_tokens: int = 4096,
-        provider: Optional[str] = None,
+        provider: str | None = None,
         user_id: str = "",
         enable_metrics: bool = True,
-        prompt: Optional[str] = None,
-        system_prompt: Optional[str] = None,
+        prompt: str | None = None,
+        system_prompt: str | None = None,
     ) -> AsyncGenerator[str, None]:
         messages = normalize_messages(messages, prompt=prompt, system_prompt=system_prompt)
         providers = self._get_provider_fallback_chain(provider)
         if not providers:
-            raise AIServiceError(detail="No AI provider configured. Set at least one API key.")
+            raise AIServiceError(detail="No AI provider configured. Set at least one API key.") from None
 
         last_error = None
         for p in providers:
@@ -695,19 +696,19 @@ class AIService:
                 )
                 continue
 
-        raise last_error or AIServiceError(detail="All AI providers failed for streaming")
+        raise last_error or AIServiceError(detail="All AI providers failed for streaming") from None
 
     async def complete_with_guard(
         self,
         messages: Any = None,
-        model: Optional[str] = None,
+        model: str | None = None,
         temperature: float = 0.7,
         max_tokens: int = 4096,
-        provider: Optional[str] = None,
+        provider: str | None = None,
         user_id: str = "",
         organization_id: str = "",
-        prompt: Optional[str] = None,
-        system_prompt: Optional[str] = None,
+        prompt: str | None = None,
+        system_prompt: str | None = None,
     ):
         from app.services.ai_security.prompt_guard import prompt_guard
 
@@ -723,7 +724,7 @@ class AIService:
             raise AIServiceError(
                 detail=f"Input blocked by security guard: {guard_result.blocked_reason}",
                 provider="security_guard",
-            )
+            ) from None
 
         result = await self.complete(
             messages=messages,
@@ -743,7 +744,7 @@ class AIService:
                 raise AIServiceError(
                     detail=f"Output blocked by security guard: {output_guard.blocked_reason}",
                     provider="security_guard",
-                )
+                ) from None
             if output_guard.validated_output:
                 result["content"] = output_guard.validated_output
 
@@ -752,12 +753,12 @@ class AIService:
 
         return result
 
-    async def embed(self, texts: list[str], model: Optional[str] = None):
+    async def embed(self, texts: list[str], model: str | None = None):
         p = self.get_provider("openai")
         if p is None:
             p = self.get_provider()
         if p is None:
-            raise AIServiceError(detail="No AI provider configured for embeddings")
+            raise AIServiceError(detail="No AI provider configured for embeddings") from None
         return await p.embeddings(texts, model)
 
 

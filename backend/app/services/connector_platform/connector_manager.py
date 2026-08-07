@@ -1,15 +1,17 @@
 import json
 import logging
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import httpx
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.v5_connector_platform import (
-    ConnectorDefinition, ConnectorIntegration, ConnectorLog,
+    ConnectorDefinition,
+    ConnectorIntegration,
+    ConnectorLog,
 )
 
 logger = logging.getLogger("omniai.connector.manager")
@@ -183,7 +185,7 @@ class ConnectorManager:
         return count
 
     async def list_definitions(self, category: str | None = None, connector_type: str | None = None) -> list[ConnectorDefinition]:
-        q = select(ConnectorDefinition).where(ConnectorDefinition.is_active == True)
+        q = select(ConnectorDefinition).where(ConnectorDefinition.is_active.is_(True))
         if category:
             q = q.where(ConnectorDefinition.category == category)
         if connector_type:
@@ -238,7 +240,7 @@ class ConnectorManager:
             select(func.count(ConnectorIntegration.id)).where(
                 ConnectorIntegration.organization_id == org_id,
                 ConnectorIntegration.status == "connected",
-                ConnectorIntegration.is_active == True,
+                ConnectorIntegration.is_active.is_(True),
             )
         )
         active = active_q.scalar() or 0
@@ -258,7 +260,7 @@ class ConnectorManager:
         recent_wh_q = await self.db.execute(
             select(func.count(WebhookEvent.id)).where(
                 WebhookEvent.organization_id == org_id,
-                WebhookEvent.created_at >= datetime.now(timezone.utc) - timedelta(days=1),
+                WebhookEvent.created_at >= datetime.now(UTC) - timedelta(days=1),
             )
         )
         recent_webhooks = recent_wh_q.scalar() or 0

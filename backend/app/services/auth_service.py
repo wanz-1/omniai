@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import httpx
 from sqlalchemy import select
@@ -84,7 +84,7 @@ class AuthService:
             self.db.add(account)
             await self.db.flush()
 
-        user.last_login_at = datetime.now(timezone.utc)
+        user.last_login_at = datetime.now(UTC)
         await self.db.flush()
 
         jwt_access = create_access_token(subject=str(user.id), extra_claims={"role": user.role})

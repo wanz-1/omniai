@@ -64,8 +64,8 @@ class FileService:
         elif format == DocumentType.PDF:
             try:
                 from reportlab.lib.pagesizes import A4
-                from reportlab.platypus import SimpleDocTemplate, Paragraph
                 from reportlab.lib.styles import getSampleStyleSheet
+                from reportlab.platypus import Paragraph, SimpleDocTemplate
                 buf = io.BytesIO()
                 doc = SimpleDocTemplate(buf, pagesize=A4)
                 styles = getSampleStyleSheet()

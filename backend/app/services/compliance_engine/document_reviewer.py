@@ -1,6 +1,8 @@
 import uuid
 from datetime import datetime
+
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.v5_compliance import ComplianceDocumentReview
 from app.services.ai_service import ai_service
 
@@ -19,7 +21,9 @@ class DocumentReviewer:
             score=85.0, reviewed_by=uuid.uuid4(), reviewed_at=datetime.utcnow(),
             meta_data={"analysis": analysis},
         )
-        self.db.add(review); await self.db.commit(); await self.db.refresh(review)
+        self.db.add(review)
+        await self.db.commit()
+        await self.db.refresh(review)
         return review
 
     async def check_contract(self, content: str) -> dict:

@@ -25,17 +25,26 @@ import {
   Brain,
   Activity,
   Shield,
+  PlayCircle,
+  Award,
 } from "lucide-react";
 
-const navItems = [
+const navItems: Array<{
+  href: string;
+  icon: any;
+  label: string;
+  badge?: string;
+}> = [
   { href: "/", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/documents", icon: FileText, label: "Documents" },
   { href: "/websites", icon: Globe, label: "Websites" },
   { href: "/bots", icon: Bot, label: "Bots" },
   { href: "/chat", icon: MessageSquare, label: "AI Chat" },
   { href: "/multimodal", icon: Layers, label: "Multimodal" },
-  { href: "/agent-network", icon: Network, label: "Agent Network" },
   { href: "/agents", icon: Mic, label: "Agents" },
+  { href: "/active-agents", icon: PlayCircle, label: "Active Agents", badge: "NEW" },
+  { href: "/skills", icon: Award, label: "Skills", badge: "NEW" },
+  { href: "/agent-network", icon: Network, label: "Agent Network" },
   { href: "/code-studio", icon: Code, label: "Code Studio" },
   { href: "/marketplace", icon: Store, label: "Marketplace" },
   { href: "/industry", icon: Building, label: "Industry" },
@@ -78,7 +87,7 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center rounded-lg transition-all duration-200",
+                "flex items-center rounded-lg transition-all duration-200 relative",
                 collapsed ? "justify-center p-3" : "px-3 py-2.5 space-x-3",
                 isActive
                   ? "bg-primary/10 text-primary font-medium"
@@ -86,7 +95,20 @@ export function Sidebar() {
               )}
             >
               <item.icon className="w-5 h-5 flex-shrink-0" />
-              {!collapsed && <span>{item.label}</span>}
+              {!collapsed ? (
+                <span className="flex-1 flex items-center justify-between">
+                  <span>{item.label}</span>
+                  {item.badge && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-500 text-white font-bold">
+                      {item.badge}
+                    </span>
+                  )}
+                </span>
+              ) : (
+                item.badge && (
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                )
+              )}
             </Link>
           );
         })}

@@ -1,10 +1,11 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.global_infrastructure import (
-    ClusterDeployment, MonitoringMetric,
+    ClusterDeployment,
+    MonitoringMetric,
 )
 
 
@@ -16,7 +17,7 @@ class InfraMonitoringService:
         metric = MonitoringMetric(
             metric_name=name, metric_value=value, metric_type=metric_type,
             unit=unit, source=source, region_id=region_id, cluster_id=cluster_id,
-            tags=tags or {}, recorded_at=datetime.now(timezone.utc),
+            tags=tags or {}, recorded_at=datetime.now(UTC),
         )
         self.db.add(metric)
         await self.db.commit()

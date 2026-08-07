@@ -1,6 +1,8 @@
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.v5_simulation import Simulation, Scenario, RiskAssessment, SimulationRecommendation
+
+from app.models.v5_simulation import RiskAssessment, Scenario, Simulation, SimulationRecommendation
+
 
 class SimulationAnalytics:
     def __init__(self, db: AsyncSession): self.db = db

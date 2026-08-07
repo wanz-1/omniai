@@ -6,12 +6,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.agent import AgentProfile
 from app.models.agent_network import (
+    AgentTaskDelegation,
     AgentTeam,
     AgentTeamMember,
-    AgentTaskDelegation,
 )
 from app.services.ai_service import ai_service
-
 
 ORCHESTRATOR_SYSTEM_PROMPT = """You are OmniAI Agent Orchestrator. Your role is to:
 1. Analyze user requests and break them into subtasks
@@ -179,7 +178,7 @@ class AgentOrchestrator:
             select(AgentProfile).where(
                 AgentProfile.role == role,
                 AgentProfile.user_id == user_id,
-                AgentProfile.is_template == False,
+                AgentProfile.is_template.is_(False),
             ).limit(1)
         )
         agent = result.scalar_one_or_none()

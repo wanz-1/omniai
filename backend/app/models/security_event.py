@@ -1,7 +1,7 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-from sqlalchemy import DateTime, ForeignKey, Index, String, Text, JSON
+from sqlalchemy import JSON, DateTime, ForeignKey, Index, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -24,7 +24,7 @@ class SecurityEventV6(Base, TimestampMixin):
     result: Mapped[str] = mapped_column(String(20), nullable=False, default="success")
     detail: Mapped[str | None] = mapped_column(Text, nullable=True)
     meta_data: Mapped[dict | None] = mapped_column("meta_data", JSON, nullable=True)
-    event_timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True)
+    event_timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC), index=True)
 
     __table_args__ = (
         Index("idx_security_events_type_time", "event_type", "event_timestamp"),

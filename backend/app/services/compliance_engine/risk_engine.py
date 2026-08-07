@@ -1,8 +1,10 @@
 import uuid
 from datetime import datetime
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.v5_compliance import RiskScore, Finding, CorrectiveAction
+
+from app.models.v5_compliance import CorrectiveAction, Finding, RiskScore
 from app.services.ai_service import ai_service
 
 
@@ -32,7 +34,8 @@ class RiskEngine:
             category="overall", details=scores,
             assessed_at=datetime.utcnow(),
         )
-        self.db.add(risk); await self.db.commit()
+        self.db.add(risk)
+        await self.db.commit()
 
         prompt = f"Risk assessment complete. Overall score: {scores['overall']}/100. Findings: {len(findings)}, Open actions: {len(actions)}. Provide risk mitigation recommendations."
         recommendations = await ai_service.complete(prompt)

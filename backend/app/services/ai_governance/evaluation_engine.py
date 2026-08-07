@@ -1,8 +1,8 @@
-import uuid
 import logging
+import uuid
 from typing import Any
 
-from sqlalchemy import select, desc
+from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.v6_governance import AIEvaluation, EvaluationCase, HallucinationEvent
@@ -146,7 +146,7 @@ class EvaluationEngine:
         return case
 
     async def list_cases(self, category: str = "", limit: int = 100) -> list[EvaluationCase]:
-        query = select(EvaluationCase).where(EvaluationCase.is_active == True).order_by(EvaluationCase.created_at.desc())
+        query = select(EvaluationCase).where(EvaluationCase.is_active.is_(True)).order_by(EvaluationCase.created_at.desc())
         if category:
             query = query.where(EvaluationCase.category == category)
         query = query.limit(limit)

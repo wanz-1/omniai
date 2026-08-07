@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -48,7 +48,7 @@ class IndustrySolutionBuilder:
         if not pkg:
             return None
         pkg.is_installed = True
-        pkg.installed_at = datetime.now(timezone.utc)
+        pkg.installed_at = datetime.now(UTC)
         await self.db.commit()
         await self.db.refresh(pkg)
         return pkg

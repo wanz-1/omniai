@@ -1,9 +1,9 @@
-import uuid
 import logging
-from datetime import datetime, timezone, timedelta
+import uuid
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from sqlalchemy import select, func, desc
+from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.v6_governance import AIEvaluation, HallucinationEvent, QualityScore
@@ -80,7 +80,7 @@ class QualityScoringService:
         result = await self.db.execute(
             select(func.count()).where(
                 AIEvaluation.model == model,
-                AIEvaluation.passed == False,
+                AIEvaluation.passed.is_(False),
             )
         )
         failed_count = result.scalar() or 0
@@ -108,7 +108,7 @@ class QualityScoringService:
         model: str,
         period_hours: int = 24,
     ) -> QualityScore:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         period_start = now - timedelta(hours=period_hours)
 
         result = await self.db.execute(

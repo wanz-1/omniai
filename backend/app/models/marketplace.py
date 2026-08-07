@@ -1,10 +1,11 @@
 import uuid
 from decimal import Decimal
+
 from sqlalchemy import Enum, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.core.constants import MarketplaceItemType, MarketplaceItemStatus
+from app.core.constants import MarketplaceItemStatus, MarketplaceItemType
 from app.models.base import Base, TimestampMixin, UUIDMixin
 
 

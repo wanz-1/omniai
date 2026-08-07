@@ -1,6 +1,6 @@
 import json
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,7 +8,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.marketplace import MarketplaceItem
 from app.models.marketplace_extended import VerificationResult
 from app.services.ai_service import ai_service
-
 
 VERIFICATION_PROMPTS = {
     "community": "Review this product for basic quality, functionality, and documentation completeness.",
@@ -24,7 +23,8 @@ class MarketplaceVerificationService:
     async def verify_product(self, product_id: uuid.UUID, level: str = "community", reviewer_id: uuid.UUID | None = None) -> VerificationResult:
         result = await self.db.execute(select(MarketplaceItem).where(MarketplaceItem.id == product_id))
         item = result.scalar_one_or_none()
-        if not item: raise ValueError("Product not found")
+        if not item:
+            raise ValueError("Product not found")
 
         verification = VerificationResult(product_id=product_id, level=level, reviewer_id=reviewer_id)
         self.db.add(verification)
@@ -49,7 +49,7 @@ class MarketplaceVerificationService:
         verification.documentation_score = data.get("documentation_score")
         verification.issues = data.get("issues", [])
         verification.report = json.dumps(data, indent=2)
-        verification.checked_at = datetime.now(timezone.utc)
+        verification.checked_at = datetime.now(UTC)
 
         if level == "community" and (verification.score or 0) >= 60:
             item.status = "approved"

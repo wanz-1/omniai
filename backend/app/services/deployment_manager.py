@@ -1,12 +1,11 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.code_studio import BuildRecord, StudioDeployment, StudioFile, StudioProject
 from app.services.ai_service import ai_service
-
 
 DEPLOYMENT_SYSTEM_PROMPT = """You are a DevOps AI. Generate deployment configurations:
 1. Dockerfile for the project
@@ -84,7 +83,7 @@ class DeploymentManagerService:
 
         build.status = "success"
         build.output = {"files_checked": len(files), "build_check": ai_result.get("content", "")[:500]}
-        build.completed_at = datetime.now(timezone.utc)
+        build.completed_at = datetime.now(UTC)
         await self.db.commit()
         await self.db.refresh(build)
         return build

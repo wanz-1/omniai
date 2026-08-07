@@ -1,11 +1,11 @@
 import json
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 from fastapi.responses import StreamingResponse
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, get_db
@@ -257,8 +257,8 @@ async def get_bot_analytics(
 
 async def _bot_daily_activity(db: AsyncSession, bot_id: uuid.UUID, days: int = 14) -> list[dict]:
     """Bucket conversation/message counts per day for the last ``days`` days."""
-    today = datetime.now(timezone.utc).date()
-    cutoff = datetime.combine(today - timedelta(days=days - 1), datetime.min.time(), tzinfo=timezone.utc)
+    today = datetime.now(UTC).date()
+    cutoff = datetime.combine(today - timedelta(days=days - 1), datetime.min.time(), tzinfo=UTC)
     conv_rows = await db.execute(
         select(BotConversation.created_at).where(
             BotConversation.bot_id == bot_id,

@@ -1,8 +1,8 @@
+import uuid
 from datetime import datetime
 from typing import Any
-import uuid
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class PromptCreate(BaseModel):
@@ -119,8 +119,7 @@ class ReviewResponse(BaseModel):
     reviewed_at: datetime | None = None
     expires_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ReviewActionResponse(BaseModel):

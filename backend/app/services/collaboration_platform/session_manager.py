@@ -1,9 +1,13 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import select, func
+
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.v5_collaboration import (
-    CollaborationSession, SessionParticipant, MultimodalMessage,
+    CollaborationSession,
+    MultimodalMessage,
+    SessionParticipant,
 )
 
 
@@ -16,7 +20,9 @@ class SessionManager:
             organization_id=org_id, title=title, session_type=session_type,
             status="scheduled", description=description, created_by=created_by,
         )
-        self.db.add(session); await self.db.commit(); await self.db.refresh(session)
+        self.db.add(session)
+        await self.db.commit()
+        await self.db.refresh(session)
         if participant_ids:
             for uid in participant_ids:
                 self.db.add(SessionParticipant(session_id=session.id, user_id=uid, role="participant"))
@@ -25,8 +31,10 @@ class SessionManager:
 
     async def list_sessions(self, org_id: uuid.UUID, session_type: str | None = None, status: str | None = None) -> list[CollaborationSession]:
         q = select(CollaborationSession).where(CollaborationSession.organization_id == org_id)
-        if session_type: q = q.where(CollaborationSession.session_type == session_type)
-        if status: q = q.where(CollaborationSession.status == status)
+        if session_type:
+            q = q.where(CollaborationSession.session_type == session_type)
+        if status:
+            q = q.where(CollaborationSession.status == status)
         q = q.order_by(CollaborationSession.created_at.desc())
         rows = await self.db.execute(q)
         return list(rows.scalars().all())
@@ -38,31 +46,46 @@ class SessionManager:
     async def start_session(self, session_id: uuid.UUID) -> CollaborationSession | None:
         rows = await self.db.execute(select(CollaborationSession).where(CollaborationSession.id == session_id))
         s = rows.scalar_one_or_none()
-        if s: s.status = "active"; s.started_at = datetime.utcnow(); await self.db.commit(); await self.db.refresh(s)
+        if s:
+            s.status = "active"
+            s.started_at = datetime.utcnow()
+            await self.db.commit()
+            await self.db.refresh(s)
         return s
 
     async def end_session(self, session_id: uuid.UUID) -> CollaborationSession | None:
         rows = await self.db.execute(select(CollaborationSession).where(CollaborationSession.id == session_id))
         s = rows.scalar_one_or_none()
-        if s: s.status = "completed"; s.ended_at = datetime.utcnow(); await self.db.commit(); await self.db.refresh(s)
+        if s:
+            s.status = "completed"
+            s.ended_at = datetime.utcnow()
+            await self.db.commit()
+            await self.db.refresh(s)
         return s
 
     async def join_session(self, session_id: uuid.UUID, user_id: uuid.UUID, role: str = "participant") -> SessionParticipant:
         rows = await self.db.execute(select(SessionParticipant).where(SessionParticipant.session_id == session_id, SessionParticipant.user_id == user_id))
         existing = rows.scalar_one_or_none()
         if existing:
-            existing.is_present = True; existing.joined_at = datetime.utcnow()
-            await self.db.commit(); await self.db.refresh(existing)
+            existing.is_present = True
+            existing.joined_at = datetime.utcnow()
+            await self.db.commit()
+            await self.db.refresh(existing)
             return existing
         p = SessionParticipant(session_id=session_id, user_id=user_id, role=role, joined_at=datetime.utcnow(), is_present=True)
-        self.db.add(p); await self.db.commit(); await self.db.refresh(p)
+        self.db.add(p)
+        await self.db.commit()
+        await self.db.refresh(p)
         return p
 
     async def leave_session(self, session_id: uuid.UUID, user_id: uuid.UUID) -> bool:
         rows = await self.db.execute(select(SessionParticipant).where(SessionParticipant.session_id == session_id, SessionParticipant.user_id == user_id))
         p = rows.scalar_one_or_none()
-        if not p: return False
-        p.is_present = False; p.left_at = datetime.utcnow(); await self.db.commit()
+        if not p:
+            return False
+        p.is_present = False
+        p.left_at = datetime.utcnow()
+        await self.db.commit()
         return True
 
     async def get_participants(self, session_id: uuid.UUID) -> list[SessionParticipant]:
@@ -75,7 +98,9 @@ class SessionManager:
             content=content, media_url=media_url, media_type=media_type,
             duration_seconds=duration_seconds, parent_id=parent_id,
         )
-        self.db.add(msg); await self.db.commit(); await self.db.refresh(msg)
+        self.db.add(msg)
+        await self.db.commit()
+        await self.db.refresh(msg)
         return msg
 
     async def get_messages(self, session_id: uuid.UUID, limit: int = 100) -> list[MultimodalMessage]:

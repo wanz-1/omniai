@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useWebSocket } from "./useWebSocket";
 import { notificationsApi } from "@/lib/api-client";
 
@@ -14,55 +14,83 @@ interface Notification {
   created_at: string;
 }
 
+interface NotificationPayload {
+  payload: Notification;
+  type?: string;
+}
+
 export function useNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const { on } = useWebSocket();
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     try {
       const response = await notificationsApi.list(true);
-      setNotifications(response.data.items || []);
-    } catch {}
-  };
+      const data = response.data as { items?: Notification[] };
+      setNotifications(data.items || []);
+    } catch {
+      // Silently ignore fetch errors (e.g., offline)
+    }
+  }, []);
 
-  const fetchUnreadCount = async () => {
+  const fetchUnreadCount = useCallback(async () => {
     try {
       const response = await notificationsApi.unreadCount();
-      setUnreadCount(response.data.unread_count || 0);
-    } catch {}
-  };
+      const data = response.data as { unread_count?: number };
+      setUnreadCount(data.unread_count || 0);
+    } catch {
+      // ignore
+    }
+  }, []);
 
   useEffect(() => {
     fetchNotifications();
     fetchUnreadCount();
-  }, []);
+  }, [fetchNotifications, fetchUnreadCount]);
 
   useEffect(() => {
-    const unsubscribe = on("notification", (data) => {
-      setNotifications((prev) => [data.payload, ...prev]);
-      setUnreadCount((prev) => prev + 1);
+    const unsubscribe = on("notification", (raw: unknown) => {
+      try {
+        const msg = raw as NotificationPayload;
+        const payload = msg.payload;
+        if (!payload || !payload.id) return;
+        setNotifications((prev) => [payload, ...prev]);
+        setUnreadCount((prev) => prev + 1);
+      } catch {
+        // ignore malformed payload
+      }
     });
-    return () => { unsubscribe(); };
+    return () => {
+      try {
+        unsubscribe();
+      } catch {
+        // ignore
+      }
+    };
   }, [on]);
 
-  const markAsRead = async (id: string) => {
+  const markAsRead = useCallback(async (id: string) => {
     try {
       await notificationsApi.markRead(id);
       setNotifications((prev) =>
         prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
-    } catch {}
-  };
+    } catch {
+      // ignore
+    }
+  }, []);
 
-  const markAllAsRead = async () => {
+  const markAllAsRead = useCallback(async () => {
     try {
       await notificationsApi.markAllRead();
       setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
       setUnreadCount(0);
-    } catch {}
-  };
+    } catch {
+      // ignore
+    }
+  }, []);
 
   return {
     notifications,

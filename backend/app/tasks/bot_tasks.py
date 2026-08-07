@@ -26,7 +26,7 @@ def train_bot_knowledge_base(self, bot_id: str):
             urls = list(config.get("urls") or [])
             text = config.get("text") or ""
             config["status"] = "trained"
-            config["trained_at"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+            config["trained_at"] = datetime.datetime.now(datetime.UTC).isoformat()
             config["source_count"] = len(files) + len(urls) + (1 if text else 0)
             config["character_count"] = (
                 sum(len(str(f)) for f in files)
@@ -46,4 +46,4 @@ def train_bot_knowledge_base(self, bot_id: str):
     try:
         return run(_train())
     except Exception as exc:
-        raise self.retry(exc=exc)
+        raise self.retry(exc=exc) from exc

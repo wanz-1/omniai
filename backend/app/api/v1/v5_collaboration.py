@@ -6,22 +6,31 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.dependencies import get_current_user, get_db
 from app.models.user import User
 from app.schemas.v5_collaboration import (
-    CollaborationSessionResponse, SessionParticipantResponse,
-    MultimodalMessageResponse, WhiteboardSessionResponse,
-    SessionRecordingResponse, AIMeetingInsightResponse,
-    CollaborationAgentResponse, ScreenShareSessionResponse,
-    DocumentCollaborationResponse, CollaborationDashboardResponse,
-    CreateSessionRequest, SendMessageRequest, CreateWhiteboardRequest,
-    UpdateWhiteboardRequest, CreateAgentRequest, JoinAgentRequest,
+    AIMeetingInsightResponse,
+    CollaborationAgentResponse,
+    CollaborationDashboardResponse,
+    CollaborationSessionResponse,
+    CreateAgentRequest,
+    CreateSessionRequest,
+    CreateWhiteboardRequest,
+    DocumentCollaborationResponse,
+    JoinAgentRequest,
+    MultimodalMessageResponse,
+    ScreenShareSessionResponse,
+    SendMessageRequest,
+    SessionParticipantResponse,
+    SessionRecordingResponse,
+    UpdateWhiteboardRequest,
+    WhiteboardSessionResponse,
 )
-from app.services.collaboration_platform.session_manager import SessionManager
-from app.services.collaboration_platform.whiteboard_service import WhiteboardService
-from app.services.collaboration_platform.meeting_intelligence import MeetingIntelligenceService
-from app.services.collaboration_platform.screen_share_service import ScreenShareService
-from app.services.collaboration_platform.recording_service import RecordingService
 from app.services.collaboration_platform.agent_service import CollaborationAgentService
 from app.services.collaboration_platform.document_collab_service import DocumentCollaborationService
+from app.services.collaboration_platform.meeting_intelligence import MeetingIntelligenceService
 from app.services.collaboration_platform.realtime_service import RealtimeService
+from app.services.collaboration_platform.recording_service import RecordingService
+from app.services.collaboration_platform.screen_share_service import ScreenShareService
+from app.services.collaboration_platform.session_manager import SessionManager
+from app.services.collaboration_platform.whiteboard_service import WhiteboardService
 
 router = APIRouter()
 

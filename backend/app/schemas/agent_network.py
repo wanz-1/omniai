@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime
-from pydantic import BaseModel
+
+from pydantic import BaseModel, ConfigDict
 
 
 class AgentTeamCreate(BaseModel):
@@ -37,8 +38,7 @@ class AgentTeamResponse(BaseModel):
     updated_at: datetime | None = None
     members: list | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AgentMessageResponse(BaseModel):
@@ -54,8 +54,7 @@ class AgentMessageResponse(BaseModel):
     read_at: datetime | None = None
     created_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AgentTaskDelegationCreate(BaseModel):
@@ -88,8 +87,7 @@ class AgentTaskDelegationResponse(BaseModel):
     completed_at: datetime | None = None
     created_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AgentReviewCreate(BaseModel):
@@ -117,8 +115,7 @@ class AgentReviewResponse(BaseModel):
     task_id: uuid.UUID | None = None
     created_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class OrchestrateRequest(BaseModel):
@@ -156,8 +153,7 @@ class ResearchResponse(BaseModel):
     recommendations: list | None = None
     confidence: float | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class DevProjectRequest(BaseModel):
@@ -181,8 +177,7 @@ class DevProjectResponse(BaseModel):
     repo_url: str | None = None
     created_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PermissionCreate(BaseModel):
@@ -205,8 +200,7 @@ class PermissionResponse(BaseModel):
     team_id: uuid.UUID | None = None
     created_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class MemoryNetworkCreate(BaseModel):
@@ -236,8 +230,7 @@ class MemoryNetworkResponse(BaseModel):
     agent_id: uuid.UUID | None = None
     created_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class GovernanceAuditLog(BaseModel):
@@ -249,5 +242,4 @@ class GovernanceAuditLog(BaseModel):
     details: dict | None = None
     timestamp: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

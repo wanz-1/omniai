@@ -4,7 +4,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.services.ai_service import ai_service
 
-
 DEBUG_SYSTEM_PROMPT = """You are an expert AI Debugger. Analyze errors and provide:
 1. Root cause analysis
 2. Fix/solution

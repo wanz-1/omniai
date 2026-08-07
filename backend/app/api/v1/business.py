@@ -1,31 +1,45 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import select, func, and_
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, get_db
 from app.core.exceptions import NotFoundError
 from app.models.business import (
-    ApprovalRequest, BusinessAlert, BusinessMetric, BusinessReport,
-    BusinessWorkflow, KnowledgeDocument,
+    ApprovalRequest,
+    BusinessAlert,
+    BusinessMetric,
+    BusinessReport,
+    BusinessWorkflow,
+    KnowledgeDocument,
 )
 from app.models.organization import Organization
 from app.models.user import User
 from app.schemas.business import (
-    AgentQueryRequest, AgentQueryResponse,
-    ApprovalRequestCreate, ApprovalRequestResponse,
-    BusinessMetricResponse, BusinessReportResponse,
-    FinancialRecordCreate, FinancialRecordResponse,
-    KnowledgeDocumentCreate, KnowledgeDocumentResponse,
-    WorkflowCreateRequest, WorkflowExecutionResponse, WorkflowResponse,
+    AgentQueryRequest,
+    AgentQueryResponse,
+    ApprovalRequestCreate,
+    ApprovalRequestResponse,
+    BusinessMetricResponse,
+    BusinessReportResponse,
+    FinancialRecordCreate,
+    FinancialRecordResponse,
+    KnowledgeDocumentCreate,
+    KnowledgeDocumentResponse,
+    WorkflowCreateRequest,
+    WorkflowExecutionResponse,
+    WorkflowResponse,
 )
 from app.schemas.common import MessageResponse
 from app.services.business_agent_service import (
-    ApprovalService, BusinessAgentService, BusinessWorkflowService,
-    FinancialAnalysisService, KnowledgeService,
+    ApprovalService,
+    BusinessAgentService,
+    BusinessWorkflowService,
+    FinancialAnalysisService,
+    KnowledgeService,
 )
 
 router = APIRouter()
@@ -106,8 +120,8 @@ async def list_metrics(
     current_user: Annotated[User, Depends(get_current_user)] = None,
     db: Annotated[AsyncSession, Depends(get_db)] = None,
 ):
-    from datetime import timedelta, timezone
-    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    from datetime import timedelta
+    cutoff = datetime.now(UTC) - timedelta(days=days)
     query = select(BusinessMetric).where(
         and_(
             BusinessMetric.organization_id == organization_id,
@@ -161,7 +175,7 @@ async def business_dashboard(
         select(BusinessAlert).where(
             and_(
                 BusinessAlert.organization_id == organization_id,
-                BusinessAlert.is_resolved == False,
+                BusinessAlert.is_resolved.is_(False),
             )
         ).order_by(BusinessAlert.created_at.desc()).limit(10)
     )
@@ -273,7 +287,7 @@ async def financial_summary(
     db: Annotated[AsyncSession, Depends(get_db)] = None,
 ):
     svc = FinancialAnalysisService(db)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     import dateutil.relativedelta
     start = start - dateutil.relativedelta.relativedelta(months=months)
@@ -372,7 +386,7 @@ async def list_knowledge(
         select(KnowledgeDocument).where(
             and_(
                 KnowledgeDocument.organization_id == organization_id,
-                KnowledgeDocument.is_active == True,
+                KnowledgeDocument.is_active.is_(True),
             )
         ).order_by(KnowledgeDocument.created_at.desc()).limit(100)
     )
@@ -399,7 +413,7 @@ async def list_alerts(
 ):
     query = select(BusinessAlert).where(BusinessAlert.organization_id == organization_id)
     if unresolved_only:
-        query = query.where(BusinessAlert.is_resolved == False)
+        query = query.where(BusinessAlert.is_resolved.is_(False))
     query = query.order_by(BusinessAlert.created_at.desc()).limit(50)
     result = await db.execute(query)
     return [{

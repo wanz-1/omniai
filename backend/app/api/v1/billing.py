@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.dependencies import get_current_user, get_db
 from app.core.exceptions import NotFoundError
 from app.models.organization import Organization
-from app.models.subscription import Subscription, SubscriptionPlan, Invoice
+from app.models.subscription import Invoice, Subscription, SubscriptionPlan
 from app.models.user import User
 from app.schemas.common import MessageResponse
 from app.schemas.subscription import (
@@ -30,7 +30,7 @@ async def list_plans(
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
     result = await db.execute(
-        select(SubscriptionPlan).where(SubscriptionPlan.is_active == True).order_by(SubscriptionPlan.sort_order)
+        select(SubscriptionPlan).where(SubscriptionPlan.is_active.is_(True)).order_by(SubscriptionPlan.sort_order)
     )
     return result.scalars().all()
 

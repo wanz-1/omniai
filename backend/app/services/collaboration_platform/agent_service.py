@@ -1,8 +1,12 @@
 import uuid
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.v5_collaboration import (
-    CollaborationAgent, AgentSessionLink, MultimodalMessage,
+    AgentSessionLink,
+    CollaborationAgent,
+    MultimodalMessage,
 )
 from app.services.ai_service import ai_service
 
@@ -17,23 +21,28 @@ class CollaborationAgentService:
             capabilities=capabilities or [], config=config or {},
             created_by=created_by,
         )
-        self.db.add(agent); await self.db.commit(); await self.db.refresh(agent)
+        self.db.add(agent)
+        await self.db.commit()
+        await self.db.refresh(agent)
         return agent
 
     async def list_agents(self, org_id: uuid.UUID) -> list[CollaborationAgent]:
         rows = await self.db.execute(
-            select(CollaborationAgent).where(CollaborationAgent.organization_id == org_id, CollaborationAgent.is_active == True)
+            select(CollaborationAgent).where(CollaborationAgent.organization_id == org_id, CollaborationAgent.is_active.is_(True))
         )
         return list(rows.scalars().all())
 
     async def join_session(self, agent_id: uuid.UUID, session_id: uuid.UUID, role: str = "assistant") -> AgentSessionLink:
         link = AgentSessionLink(agent_id=agent_id, session_id=session_id, role=role)
-        self.db.add(link); await self.db.commit(); await self.db.refresh(link)
+        self.db.add(link)
+        await self.db.commit()
+        await self.db.refresh(link)
         msg = MultimodalMessage(
             session_id=session_id, sender_id=agent_id,
             message_type="system", content=f"AI agent joined the session as {role}",
         )
-        self.db.add(msg); await self.db.commit()
+        self.db.add(msg)
+        await self.db.commit()
         return link
 
     async def agent_chat(self, session_id: uuid.UUID, agent_id: uuid.UUID, message: str) -> str:
@@ -46,5 +55,6 @@ class CollaborationAgentService:
             session_id=session_id, sender_id=agent_id,
             message_type="text", content=result,
         )
-        self.db.add(msg); await self.db.commit()
+        self.db.add(msg)
+        await self.db.commit()
         return result

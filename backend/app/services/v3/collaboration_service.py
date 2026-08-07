@@ -1,11 +1,14 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.v3_collaboration import (
-    AICommunication, AIMeetingSession, DeviceTelemetry,
-    LearningPath, PhysicalDevice,
+    AICommunication,
+    AIMeetingSession,
+    DeviceTelemetry,
+    LearningPath,
+    PhysicalDevice,
 )
 from app.services.ai_service import ai_service
 
@@ -123,14 +126,14 @@ Provide a structured curriculum with modules, estimated hours per module, and le
         telemetry = DeviceTelemetry(
             device_id=device_id, metric_name=metric_name,
             metric_value=metric_value, unit=unit,
-            recorded_at=datetime.now(timezone.utc),
+            recorded_at=datetime.now(UTC),
         )
         self.db.add(telemetry)
         await self.db.commit()
         await self.db.refresh(telemetry)
         device = await self.db.get(PhysicalDevice, device_id)
         if device:
-            device.last_seen = datetime.now(timezone.utc)
+            device.last_seen = datetime.now(UTC)
             device.status = "online"
             await self.db.commit()
         return telemetry

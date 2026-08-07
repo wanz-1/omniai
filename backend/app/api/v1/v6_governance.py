@@ -1,6 +1,6 @@
-from datetime import datetime, timezone
-from typing import Annotated
 import uuid
+from datetime import UTC, datetime
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, select
@@ -9,8 +9,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.dependencies import get_current_user, get_db
 from app.models.user import User
 from app.models.v6_governance import (
-    AIEvaluation,
     AIDecision,
+    AIEvaluation,
     HumanReview,
     PromptRegistry,
     PromptVersion,
@@ -90,7 +90,7 @@ async def create_prompt(
     db: Annotated[AsyncSession, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     prompt = PromptRegistry(
         name=body.name,
         category=body.category,
@@ -148,7 +148,7 @@ async def create_prompt_version(
     if not prompt:
         raise HTTPException(404, "Prompt not found")
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     new_version = prompt.current_version + 1
     version = PromptVersion(
         prompt_id=prompt_id,
@@ -321,7 +321,7 @@ async def log_decision(
     db: Annotated[AsyncSession, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     decision = AIDecision(
         user_id=uuid.UUID(body.user_id) if body.user_id else user.id,
         organization_id=body.organization_id,
@@ -368,7 +368,7 @@ async def submit_feedback(
     db: Annotated[AsyncSession, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
 ):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     feedback = UserFeedback(
         user_id=user.id,
         decision_id=uuid.UUID(body.decision_id) if body.decision_id else None,
@@ -411,7 +411,7 @@ async def governance_dashboard(
 
     passed_count = (
         await db.execute(
-            select(func.count(AIEvaluation.id)).where(AIEvaluation.passed == True)
+            select(func.count(AIEvaluation.id)).where(AIEvaluation.passed.is_(True))
         )
     ).scalar() or 0
 

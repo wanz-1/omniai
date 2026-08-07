@@ -1,29 +1,28 @@
 import uuid
 from datetime import datetime
-from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class CodeProjectCreateRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=200)
-    description: Optional[str] = None
-    project_id: Optional[uuid.UUID] = None
+    description: str | None = None
+    project_id: uuid.UUID | None = None
     language: str = Field(..., min_length=1)
-    framework: Optional[str] = None
+    framework: str | None = None
 
 
 class CodeProjectUpdateRequest(BaseModel):
-    name: Optional[str] = Field(None, min_length=1, max_length=200)
-    description: Optional[str] = None
-    files: Optional[list[dict]] = None
+    name: str | None = Field(None, min_length=1, max_length=200)
+    description: str | None = None
+    files: list[dict] | None = None
 
 
 class CodeGenerateRequest(BaseModel):
     prompt: str = Field(..., min_length=5)
     language: str = Field(..., min_length=1)
-    framework: Optional[str] = None
-    context_files: Optional[list[dict]] = None
+    framework: str | None = None
+    context_files: list[dict] | None = None
 
 
 class CodeExplainRequest(BaseModel):
@@ -40,7 +39,7 @@ class CodeReviewSuggestion(BaseModel):
     line: int
     severity: str
     message: str
-    recommendation: Optional[str] = None
+    recommendation: str | None = None
 
 
 class CodeReviewResponse(BaseModel):
@@ -51,22 +50,21 @@ class CodeReviewResponse(BaseModel):
 
 class CodeGenerateResponse(BaseModel):
     code: str
-    explanation: Optional[str] = None
+    explanation: str | None = None
     language: str
-    tokens_used: Optional[int] = None
+    tokens_used: int | None = None
 
 
 class CodeProjectResponse(BaseModel):
     id: uuid.UUID
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     language: str
-    framework: Optional[str] = None
-    files: Optional[list[dict]] = None
-    project_id: Optional[uuid.UUID] = None
+    framework: str | None = None
+    files: list[dict] | None = None
+    project_id: uuid.UUID | None = None
     user_id: uuid.UUID
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

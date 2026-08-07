@@ -6,22 +6,30 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.dependencies import get_current_user, get_db
 from app.models.user import User
 from app.schemas.v5_connector_platform import (
-    ConnectorDefinitionResponse, ConnectorIntegrationResponse,
-    SyncJobResponse, WebhookEventResponse, ConnectorLogResponse,
-    ConnectorApiKeyResponse, CustomConnectorEndpointResponse,
-    InstallConnectorRequest, CreateCustomConnectorRequest,
-    AuthenticateConnectorRequest, SyncConnectorRequest,
-    RegisterWebhookRequest, CreateApiKeyRequest,
-    ConnectorQueryRequest, ConnectorDashboardResponse,
+    AuthenticateConnectorRequest,
+    ConnectorApiKeyResponse,
+    ConnectorDashboardResponse,
+    ConnectorDefinitionResponse,
+    ConnectorIntegrationResponse,
+    ConnectorLogResponse,
+    ConnectorQueryRequest,
+    CreateApiKeyRequest,
+    CreateCustomConnectorRequest,
+    CustomConnectorEndpointResponse,
+    InstallConnectorRequest,
+    RegisterWebhookRequest,
+    SyncConnectorRequest,
+    SyncJobResponse,
+    WebhookEventResponse,
 )
-from app.services.connector_platform.connector_manager import ConnectorManager
-from app.services.connector_platform.authentication_service import AuthenticationService
-from app.services.connector_platform.sync_engine import SyncEngine
-from app.services.connector_platform.webhook_manager import WebhookManager
 from app.services.connector_platform.api_gateway import ApiGateway
+from app.services.connector_platform.authentication_service import AuthenticationService
+from app.services.connector_platform.connector_manager import ConnectorManager
 from app.services.connector_platform.connector_sdk import ConnectorSDK
 from app.services.connector_platform.marketplace_service import MarketplaceService
 from app.services.connector_platform.monitoring_service import MonitoringService
+from app.services.connector_platform.sync_engine import SyncEngine
+from app.services.connector_platform.webhook_manager import WebhookManager
 
 router = APIRouter()
 

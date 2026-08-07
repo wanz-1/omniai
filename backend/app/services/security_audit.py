@@ -1,6 +1,6 @@
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import select
@@ -49,7 +49,7 @@ class SecurityAuditService:
             result=result,
             detail=detail or None,
             meta_data=extra,
-            event_timestamp=datetime.now(timezone.utc),
+            event_timestamp=datetime.now(UTC),
         )
 
         if self.db:

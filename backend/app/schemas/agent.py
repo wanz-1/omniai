@@ -1,35 +1,33 @@
 import uuid
 from datetime import datetime
-from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class SkillCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=200)
-    description: Optional[str] = None
-    category: Optional[str] = None
+    description: str | None = None
+    category: str | None = None
     proficiency: int = 5
 
 
 class SkillResponse(BaseModel):
     id: uuid.UUID
     name: str
-    description: Optional[str] = None
-    category: Optional[str] = None
+    description: str | None = None
+    category: str | None = None
     proficiency: int
     agent_id: uuid.UUID
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class MemoryCreate(BaseModel):
     key: str = Field(..., min_length=1, max_length=200)
     content: str = Field(..., min_length=1)
     memory_type: str = "fact"
-    category: Optional[str] = None
+    category: str | None = None
     importance: int = 1
     is_organization: bool = False
 
@@ -39,22 +37,21 @@ class MemoryResponse(BaseModel):
     key: str
     content: str
     memory_type: str
-    category: Optional[str] = None
+    category: str | None = None
     importance: int
     is_organization: bool
     agent_id: uuid.UUID
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ToolCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=200)
     tool_type: str = Field(..., min_length=1)
-    description: Optional[str] = None
-    config: Optional[dict] = None
+    description: str | None = None
+    config: dict | None = None
     enabled: bool = True
 
 
@@ -62,107 +59,104 @@ class ToolResponse(BaseModel):
     id: uuid.UUID
     name: str
     tool_type: str
-    description: Optional[str] = None
-    config: Optional[dict] = None
+    description: str | None = None
+    config: dict | None = None
     enabled: bool
     agent_id: uuid.UUID
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class WorkflowStepCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=200)
     step_type: str = Field(..., min_length=1)
-    config: Optional[dict] = None
+    config: dict | None = None
     order: int = 0
-    position_x: Optional[float] = None
-    position_y: Optional[float] = None
+    position_x: float | None = None
+    position_y: float | None = None
 
 
 class WorkflowStepResponse(BaseModel):
     id: uuid.UUID
     name: str
     step_type: str
-    config: Optional[dict] = None
+    config: dict | None = None
     order: int
-    position_x: Optional[float] = None
-    position_y: Optional[float] = None
+    position_x: float | None = None
+    position_y: float | None = None
     workflow_id: uuid.UUID
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class WorkflowCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=200)
-    description: Optional[str] = None
-    trigger_event: Optional[str] = None
-    trigger_config: Optional[dict] = None
+    description: str | None = None
+    trigger_event: str | None = None
+    trigger_config: dict | None = None
     steps: list[WorkflowStepCreate] = []
 
 
 class WorkflowResponse(BaseModel):
     id: uuid.UUID
     name: str
-    description: Optional[str] = None
+    description: str | None = None
     is_active: bool
-    trigger_event: Optional[str] = None
-    trigger_config: Optional[dict] = None
+    trigger_event: str | None = None
+    trigger_config: dict | None = None
     agent_id: uuid.UUID
     steps: list[WorkflowStepResponse] = []
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AgentCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=200)
     role: str = Field(..., min_length=1, max_length=200)
-    description: Optional[str] = None
-    system_prompt: Optional[str] = None
+    description: str | None = None
+    system_prompt: str | None = None
     model: str = "gpt-4o"
     temperature: float = Field(default=0.7, ge=0.0, le=2.0)
-    icon: Optional[str] = None
-    color: Optional[str] = None
+    icon: str | None = None
+    color: str | None = None
     skills: list[SkillCreate] = []
     tools: list[ToolCreate] = []
 
 
 class AgentUpdate(BaseModel):
-    name: Optional[str] = Field(None, min_length=1, max_length=200)
-    role: Optional[str] = Field(None, min_length=1, max_length=200)
-    description: Optional[str] = None
-    system_prompt: Optional[str] = None
-    model: Optional[str] = None
-    temperature: Optional[float] = Field(None, ge=0.0, le=2.0)
-    status: Optional[str] = None
-    icon: Optional[str] = None
-    color: Optional[str] = None
-    config: Optional[dict] = None
+    name: str | None = Field(None, min_length=1, max_length=200)
+    role: str | None = Field(None, min_length=1, max_length=200)
+    description: str | None = None
+    system_prompt: str | None = None
+    model: str | None = None
+    temperature: float | None = Field(None, ge=0.0, le=2.0)
+    status: str | None = None
+    icon: str | None = None
+    color: str | None = None
+    config: dict | None = None
 
 
 class AgentResponse(BaseModel):
     id: uuid.UUID
     name: str
     role: str
-    description: Optional[str] = None
-    system_prompt: Optional[str] = None
+    description: str | None = None
+    system_prompt: str | None = None
     model: str
     temperature: float
     status: str
     is_template: bool
-    template_category: Optional[str] = None
-    icon: Optional[str] = None
-    color: Optional[str] = None
-    config: Optional[dict] = None
+    template_category: str | None = None
+    icon: str | None = None
+    color: str | None = None
+    config: dict | None = None
     published: bool
     marketplace_listed: bool
-    price: Optional[float] = None
+    price: float | None = None
     download_count: int
     user_id: uuid.UUID
     skills: list[SkillResponse] = []
@@ -171,66 +165,63 @@ class AgentResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AgentTaskCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=300)
-    description: Optional[str] = None
+    description: str | None = None
     priority: int = 1
-    input_data: Optional[dict] = None
+    input_data: dict | None = None
 
 
 class AgentTaskResponse(BaseModel):
     id: uuid.UUID
     title: str
-    description: Optional[str] = None
+    description: str | None = None
     status: str
     priority: int
     progress: float
-    result: Optional[str] = None
-    error: Optional[str] = None
-    input_data: Optional[dict] = None
-    output_data: Optional[dict] = None
-    execution_plan: Optional[dict] = None
+    result: str | None = None
+    error: str | None = None
+    input_data: dict | None = None
+    output_data: dict | None = None
+    execution_plan: dict | None = None
     agent_id: uuid.UUID
     user_id: uuid.UUID
-    parent_task_id: Optional[uuid.UUID] = None
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
+    parent_task_id: uuid.UUID | None = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ExecutionResponse(BaseModel):
     id: uuid.UUID
     status: str
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-    duration_ms: Optional[int] = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    duration_ms: int | None = None
     tokens_used: int
     steps_completed: int
     steps_total: int
-    input: Optional[str] = None
-    output: Optional[str] = None
-    error: Optional[str] = None
-    execution_log: Optional[list] = None
+    input: str | None = None
+    output: str | None = None
+    error: str | None = None
+    execution_log: list | None = None
     agent_id: uuid.UUID
-    task_id: Optional[uuid.UUID] = None
+    task_id: uuid.UUID | None = None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ExecutionStreamEvent(BaseModel):
     type: str
     content: str
-    step: Optional[str] = None
-    progress: Optional[float] = None
+    step: str | None = None
+    progress: float | None = None
 
 
 class AgentAnalyticsResponse(BaseModel):
@@ -238,13 +229,12 @@ class AgentAnalyticsResponse(BaseModel):
     completed_tasks: int = 0
     failed_tasks: int = 0
     total_tokens: int = 0
-    avg_duration_ms: Optional[float] = None
-    avg_satisfaction: Optional[float] = None
-    top_skills: Optional[list] = None
-    daily_usage: Optional[dict] = None
+    avg_duration_ms: float | None = None
+    avg_satisfaction: float | None = None
+    top_skills: list | None = None
+    daily_usage: dict | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AgentChatRequest(BaseModel):
@@ -255,4 +245,4 @@ class AgentChatRequest(BaseModel):
 class AgentChatResponse(BaseModel):
     reply: str
     tokens_used: int = 0
-    execution_id: Optional[uuid.UUID] = None
+    execution_id: uuid.UUID | None = None

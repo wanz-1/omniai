@@ -1,21 +1,21 @@
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import select, func, and_
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, get_db
 from app.core.exceptions import ForbiddenError, NotFoundError
+from app.models.agent import AgentProfile
 from app.models.audit import AuditLog
+from app.models.marketplace import MarketplaceItem
 from app.models.organization import Organization, OrganizationMember
 from app.models.project import Project
-from app.models.agent import AgentProfile
 from app.models.subscription import Invoice
 from app.models.usage import UsageLog
 from app.models.user import User
-from app.models.marketplace import MarketplaceItem
 from app.schemas.admin import (
     AdminSystemSettings,
     AdminUserResponse,
@@ -39,7 +39,7 @@ async def admin_overview(
     admin: Annotated[User, Depends(require_admin)] = None,
     db: Annotated[AsyncSession, Depends(get_db)] = None,
 ):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
 
     total_users = (await db.execute(select(func.count(User.id)))).scalar() or 0
@@ -165,7 +165,7 @@ async def admin_daily_usage(
     admin: Annotated[User, Depends(require_admin)] = None,
     db: Annotated[AsyncSession, Depends(get_db)] = None,
 ):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     start_date = now - timedelta(days=days)
 
     result = await db.execute(

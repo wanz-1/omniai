@@ -1,13 +1,12 @@
 import json
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.code_studio import BranchRecord, CommitRecord, Repository
 from app.services.ai_service import ai_service
-
 
 GIT_SYSTEM_PROMPT = """You are an AI Git assistant. Help with:
 1. Writing meaningful commit messages
@@ -101,7 +100,7 @@ class GitManagerService:
             files_changed=files_changed or [],
             additions=len(files_changed or []),
             is_ai_generated=is_ai,
-            committed_at=datetime.now(timezone.utc),
+            committed_at=datetime.now(UTC),
             repository_id=repo_id,
             user_id=user_id,
         )

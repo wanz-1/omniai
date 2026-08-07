@@ -1,7 +1,8 @@
 import uuid
 from datetime import datetime
 from decimal import Decimal
-from pydantic import BaseModel
+
+from pydantic import BaseModel, ConfigDict
 
 
 class SubscriptionPlanResponse(BaseModel):
@@ -24,8 +25,7 @@ class SubscriptionPlanResponse(BaseModel):
     created_at: datetime | None = None
     updated_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class SubscriptionResponse(BaseModel):
@@ -42,8 +42,7 @@ class SubscriptionResponse(BaseModel):
     created_at: datetime | None = None
     updated_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CheckoutRequest(BaseModel):
@@ -80,5 +79,4 @@ class InvoiceResponse(BaseModel):
     lines: list | None = None
     created_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

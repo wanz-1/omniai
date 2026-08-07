@@ -6,7 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.code_studio import StudioFile, StudioProject
 from app.services.ai_service import ai_service
 
-
 SYSTEM_PROMPT = """You are an expert full-stack application generator. Given a user's idea, you:
 1. Design the complete project structure
 2. Generate production-ready code for every file

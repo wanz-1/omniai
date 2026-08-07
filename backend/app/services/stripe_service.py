@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 
 from sqlalchemy import select
@@ -141,9 +141,9 @@ async def handle_invoice_paid(invoice_data: dict):
         period_start = invoice_data.get("period_start") or invoice_data.get("created")
         period_end = invoice_data.get("period_end")
         if isinstance(period_start, (int, float)):
-            sub.current_period_start = datetime.fromtimestamp(period_start, tz=timezone.utc)
+            sub.current_period_start = datetime.fromtimestamp(period_start, tz=UTC)
         if isinstance(period_end, (int, float)):
-            sub.current_period_end = datetime.fromtimestamp(period_end, tz=timezone.utc)
+            sub.current_period_end = datetime.fromtimestamp(period_end, tz=UTC)
 
         existing_inv = await db.execute(
             select(Invoice).where(Invoice.stripe_invoice_id == stripe_invoice_id)
@@ -157,12 +157,12 @@ async def handle_invoice_paid(invoice_data: dict):
                 currency=currency.upper(),
                 status="paid",
                 stripe_invoice_id=stripe_invoice_id,
-                paid_at=datetime.now(timezone.utc),
+                paid_at=datetime.now(UTC),
             )
             db.add(invoice)
         elif invoice and amount_paid is not None:
             invoice.status = "paid"
-            invoice.paid_at = datetime.now(timezone.utc)
+            invoice.paid_at = datetime.now(UTC)
         await db.flush()
         await db.commit()
 
@@ -223,9 +223,9 @@ async def handle_subscription_updated(sub_data: dict):
         period_start = sub_data.get("current_period_start")
         period_end = sub_data.get("current_period_end")
         if isinstance(period_start, (int, float)):
-            sub.current_period_start = datetime.fromtimestamp(period_start, tz=timezone.utc)
+            sub.current_period_start = datetime.fromtimestamp(period_start, tz=UTC)
         if isinstance(period_end, (int, float)):
-            sub.current_period_end = datetime.fromtimestamp(period_end, tz=timezone.utc)
+            sub.current_period_end = datetime.fromtimestamp(period_end, tz=UTC)
         await db.flush()
         await db.commit()
 
@@ -243,7 +243,7 @@ async def handle_subscription_deleted(sub_data: dict):
         if not sub:
             return
         sub.status = SubscriptionStatus.CANCELED
-        sub.cancelled_at = datetime.now(timezone.utc)
+        sub.cancelled_at = datetime.now(UTC)
         await db.flush()
         await db.commit()
 
@@ -267,6 +267,7 @@ async def sync_plan_from_stripe(plan_id: str) -> dict | None:
 
 
 def _session() -> AsyncSession:
-    from app.main import async_session_factory
     import contextlib
+
+    from app.main import async_session_factory
     return contextlib.asynccontextmanager(lambda: async_session_factory())

@@ -6,7 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.code_studio import StudioDocumentation, StudioFile, StudioProject
 from app.services.ai_service import ai_service
 
-
 DOC_TYPES = {
     "readme": "Generate a comprehensive README.md with project overview, features, installation, usage, API, and contributing sections.",
     "api_docs": "Generate complete API documentation with all endpoints, request/response examples, authentication, and error codes.",

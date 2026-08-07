@@ -1,6 +1,13 @@
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.v5_copilot import CopilotAnalytic, CopilotRecommendation, CopilotSession, CopilotWorkflowExecution
+
+from app.models.v5_copilot import (
+    CopilotAnalytic,
+    CopilotRecommendation,
+    CopilotSession,
+    CopilotWorkflowExecution,
+)
+
 
 class CopilotAnalyticsService:
     def __init__(self, db: AsyncSession): self.db = db

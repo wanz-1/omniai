@@ -1,7 +1,9 @@
 import uuid
 from datetime import datetime
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.v5_compliance import Regulation, RegulatoryUpdate
 from app.services.ai_service import ai_service
 
@@ -16,7 +18,9 @@ class RegulationMonitor:
             category=category, description=description, requirements=[],
             effective_date=datetime.utcnow(), is_active=True,
         )
-        self.db.add(reg); await self.db.commit(); await self.db.refresh(reg)
+        self.db.add(reg)
+        await self.db.commit()
+        await self.db.refresh(reg)
         return reg
 
     async def analyze_impact(self, regulation_id: uuid.UUID) -> dict:
@@ -32,5 +36,6 @@ class RegulationMonitor:
             change_type="assessment", impact="medium", affected_areas=[reg.category],
             recommended_actions=analysis, detected_at=datetime.utcnow(), is_reviewed=False,
         )
-        self.db.add(update); await self.db.commit()
+        self.db.add(update)
+        await self.db.commit()
         return {"analysis": analysis, "regulation": reg.name}

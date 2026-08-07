@@ -1,6 +1,13 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 
 type Theme = "light" | "dark";
 
@@ -16,33 +23,66 @@ const ThemeContext = createContext<ThemeContextType>({
   setTheme: () => {},
 });
 
+function getStoredTheme(): Theme | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const stored = localStorage.getItem("theme") as Theme | null;
+    if (stored === "light" || stored === "dark") return stored;
+  } catch {
+    // ignore
+  }
+  return null;
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("light");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    const stored = localStorage.getItem("theme") as Theme | null;
+    const stored = getStoredTheme();
     if (stored) {
       setThemeState(stored);
       document.documentElement.classList.toggle("dark", stored === "dark");
-    } else {
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      setThemeState(prefersDark ? "dark" : "light");
-      document.documentElement.classList.toggle("dark", prefersDark);
+    } else if (typeof window !== "undefined") {
+      try {
+        const prefersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)"
+        ).matches;
+        const initial: Theme = prefersDark ? "dark" : "light";
+        setThemeState(initial);
+        document.documentElement.classList.toggle("dark", prefersDark);
+      } catch {
+        // ignore
+      }
     }
   }, []);
 
-  const setTheme = (newTheme: Theme) => {
+  const setTheme = useCallback((newTheme: Theme) => {
     setThemeState(newTheme);
-    localStorage.setItem("theme", newTheme);
-    document.documentElement.classList.toggle("dark", newTheme === "dark");
-  };
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("theme", newTheme);
+      } catch {
+        // ignore storage errors
+      }
+      try {
+        document.documentElement.classList.toggle(
+          "dark",
+          newTheme === "dark"
+        );
+      } catch {
+        // ignore
+      }
+    }
+  }, []);
 
-  const toggleTheme = () => {
+  const toggleTheme = useCallback(() => {
     setTheme(theme === "light" ? "dark" : "light");
-  };
+  }, [theme, setTheme]);
 
+  // Avoid hydration mismatch: render children without theme context wrapper until mounted?
+  // We still render children to avoid blank page, but theme context is available.
   if (!mounted) {
     return <>{children}</>;
   }
@@ -54,4 +94,4 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export const useTheme = () => useContext(ThemeContext);
+export const useTheme = (): ThemeContextType => useContext(ThemeContext);

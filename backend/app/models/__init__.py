@@ -1,25 +1,38 @@
-from app.models.base import Base, TimestampMixin, UUIDMixin
-from app.models.user import User, OAuthAccount
-from app.models.organization import Organization, OrganizationMember
-from app.models.project import Project
-from app.models.document import Document, DocumentVersion
-from app.models.website import Website, WebsiteDeployment
-from app.models.bot import Bot, BotConversation, BotMessage
-from app.models.chat import ChatSession, ChatMessage
-from app.models.code_project import CodeProject, CodeGeneration
-from app.models.api_key import ApiKey
-from app.models.notification import Notification
-from app.models.credit import CreditTransaction
-from app.models.usage import UsageLog
-from app.models.audit import AuditLog
-from app.models.session import UserSession
-from app.models.subscription import SubscriptionPlan, Subscription, Invoice
-from app.models.integration import IntegrationConnection
-from app.models.marketplace_extended import (
-    ProductCategory, ProductVersion, ProductReview, ProductAnalytic,
-    CreatorProfile, PluginDefinition, PluginInstallation, VerificationResult, EnterpriseListing,
+from app.models.active_agent import (
+    ActiveAgent,
+    ActiveAgentGoal,
+    ActiveAgentLog,
+    ActiveAgentMemory,
+    ActiveAgentMode,
+    ActiveAgentStatus,
 )
-from app.models.marketplace import MarketplaceItem, MarketplacePurchase
+from app.models.agent import (
+    AgentAnalytics,
+    AgentExecution,
+    AgentMemory,
+    AgentProfile,
+    AgentSkill,
+    AgentTask,
+    AgentTool,
+    Workflow,
+    WorkflowStep,
+)
+from app.models.agent_network import (
+    AgentMemoryNetwork,
+    AgentMessage,
+    AgentPerformance,
+    AgentPermission,
+    AgentReview,
+    AgentTaskDelegation,
+    AgentTeam,
+    AgentTeamMember,
+    AutonomousResearch,
+    DevProject,
+)
+from app.models.api_key import ApiKey
+from app.models.audit import AuditLog
+from app.models.base import Base, TimestampMixin, UUIDMixin
+from app.models.bot import Bot, BotConversation, BotMessage
 from app.models.business import (
     ApprovalRequest,
     BusinessAlert,
@@ -30,148 +43,232 @@ from app.models.business import (
     FinancialRecord,
     KnowledgeDocument,
 )
-from app.models.media import (
-    VoiceSession,
-    VoiceMessage,
-    MediaAsset,
-    OCRResult,
-    VideoJob,
-    MultimodalConversation,
-    MediaMultimodalMessage,
-)
+from app.models.chat import ChatMessage, ChatSession
+from app.models.code_project import CodeGeneration, CodeProject
 from app.models.code_studio import (
-    StudioProject,
-    StudioFile,
-    Repository,
-    CommitRecord,
     BranchRecord,
     BuildRecord,
-    StudioDeployment,
-    TestRun,
+    CommitRecord,
+    Repository,
     SecurityScan,
+    StudioDeployment,
     StudioDocumentation,
+    StudioFile,
+    StudioProject,
+    TestRun,
 )
-from app.models.agent_network import (
-    AgentTeam,
-    AgentTeamMember,
-    AgentMessage,
-    AgentTaskDelegation,
-    AgentReview,
-    AgentMemoryNetwork,
-    AgentPermission,
-    AgentPerformance,
-    AutonomousResearch,
-    DevProject,
-)
-from app.models.v3_personal import (
-    PersonalAIAssistant, PersonalMemory, PersonalTask,
-    PersonalKnowledgeItem, ExecutiveAssistant,
-)
-from app.models.v3_organization import (
-    AIOrganizationOS, AIDepartment, AutonomousWorkflow, DepartmentAgent,
-)
-from app.models.v3_creation import (
-    StartupProject, AIGeneratedProduct, ProductIdea, DesignAsset,
-)
-from app.models.v3_collaboration import (
-    AIMeetingSession, AICommunication, LearningPath,
-    PhysicalDevice, DeviceSchedule, DeviceTelemetry,
-)
+from app.models.credit import CreditTransaction
+from app.models.document import Document, DocumentVersion
 from app.models.global_infrastructure import (
-    InfrastructureRegion,
-    ClusterDeployment,
-    ServiceDeployment,
     AIModelRegistry,
-    SecurityEvent,
-    MonitoringMetric,
     BackupRecord,
+    ClusterDeployment,
     ComplianceReport,
-    OrganizationPolicy,
     DataResidencyConfig,
     DeveloperApiKey,
+    InfrastructureRegion,
+    MonitoringMetric,
+    OrganizationPolicy,
+    SecurityEvent,
+    ServiceDeployment,
 )
 from app.models.industry_solutions import (
-    Industry,
-    SolutionPackage,
-    IndustryKnowledgeBase,
-    IndustryWorkflow,
     ComplianceRule,
+    Industry,
     IndustryAgent,
-    IndustryTemplate,
     IndustryAnalytic,
+    IndustryKnowledgeBase,
+    IndustryTemplate,
+    IndustryWorkflow,
+    SolutionPackage,
+)
+from app.models.integration import IntegrationConnection
+from app.models.marketplace import MarketplaceItem, MarketplacePurchase
+from app.models.marketplace_extended import (
+    CreatorProfile,
+    EnterpriseListing,
+    PluginDefinition,
+    PluginInstallation,
+    ProductAnalytic,
+    ProductCategory,
+    ProductReview,
+    ProductVersion,
+    VerificationResult,
+)
+from app.models.media import (
+    MediaAsset,
+    MediaMultimodalMessage,
+    MultimodalConversation,
+    OCRResult,
+    VideoJob,
+    VoiceMessage,
+    VoiceSession,
+)
+from app.models.notification import Notification
+from app.models.organization import Organization, OrganizationMember
+from app.models.project import Project
+from app.models.security_event import SecurityEventV6
+from app.models.session import UserSession
+from app.models.subscription import Invoice, Subscription, SubscriptionPlan
+from app.models.usage import UsageLog
+from app.models.user import OAuthAccount, User
+from app.models.v3_collaboration import (
+    AICommunication,
+    AIMeetingSession,
+    DeviceSchedule,
+    DeviceTelemetry,
+    LearningPath,
+    PhysicalDevice,
+)
+from app.models.v3_creation import (
+    AIGeneratedProduct,
+    DesignAsset,
+    ProductIdea,
+    StartupProject,
+)
+from app.models.v3_organization import (
+    AIDepartment,
+    AIOrganizationOS,
+    AutonomousWorkflow,
+    DepartmentAgent,
+)
+from app.models.v3_personal import (
+    ExecutiveAssistant,
+    PersonalAIAssistant,
+    PersonalKnowledgeItem,
+    PersonalMemory,
+    PersonalTask,
 )
 from app.models.v4_cloud import (
-    TenantEnvironment, RegionalDeployment, BackupRecordV4, DisasterRecoveryPlan,
-    UsageMetric, AppCategory, AppListing, AppInstallation, AppPurchase, AppReview,
-    WorkflowTemplate, WorkflowInstallationV4, WorkflowRatingV4,
-)
-from app.models.v4_enterprise import (
-    KnowledgeConnector, KnowledgeSource, EnterpriseDocument,
-    AIPolicy, AgentApprovalRequest, AIAuditEvent,
-    AIMonitoringEventV4, ObservabilityDashboard,
-    EnterpriseAnalyticsV4, AdoptionMetricV4, CostSavingsRecordV4,
+    AppCategory,
+    AppInstallation,
+    AppListing,
+    AppPurchase,
+    AppReview,
+    BackupRecordV4,
+    DisasterRecoveryPlan,
+    RegionalDeployment,
+    TenantEnvironment,
+    UsageMetric,
+    WorkflowInstallationV4,
+    WorkflowRatingV4,
+    WorkflowTemplate,
 )
 from app.models.v4_ecosystem import (
-    EnterpriseIntegrationV4, IntegrationAuthV4, SyncRecordV4,
-    AIAppDefinition, AppComponentV4, PublishedAppV4,
-    ModelRegistryEntryV4, ModelBenchmarkV4, FineTunedModelV4,
-    SdkReleaseV4, PluginDefinitionV4,
+    AIAppDefinition,
+    AppComponentV4,
+    EnterpriseIntegrationV4,
+    FineTunedModelV4,
+    IntegrationAuthV4,
+    ModelBenchmarkV4,
+    ModelRegistryEntryV4,
+    PluginDefinitionV4,
+    PublishedAppV4,
+    SdkReleaseV4,
+    SyncRecordV4,
 )
-from app.models.v5_compliance import (
-    Regulation, Policy, ComplianceCheck, ComplianceCheckResult, AuditRecord,
-    Finding, CorrectiveAction, RiskScore, ComplianceReport as ComplianceReportV5, ApprovalHistory,
-    IndustryCompliancePack, ComplianceDocumentReview, RegulatoryUpdate,
-)
-from app.models.v5_simulation import (
-    DigitalTwin, DigitalTwinEntity, SimulationModel, Scenario, Simulation,
-    SimulationVariable, Prediction, SimulationOutcome, RiskAssessment,
-    SimulationRecommendation, SimulationReport,
-)
-from app.models.v5_copilot import (
-    CopilotConfig, CopilotSession, CopilotMessage, CopilotWorkflow,
-    CopilotWorkflowExecution, CopilotRecommendation, CopilotApproval,
-    CopilotAnalytic, CopilotDomainRule, CopilotKnowledgeLink,
-)
-from app.models.v5_knowledge import (
-    KnowledgeConnectorV5, KnowledgeDocumentV5, KnowledgeChunkV5,
-    KnowledgeGraphNode, KnowledgeGraphEdge, KnowledgePermissionV5,
-    SearchQueryV5, CitationRecord,
-)
-from app.models.v5_connector_platform import (
-    ConnectorDefinition, ConnectorIntegration, ConnectorCredential,
-    ConnectorPermission, SyncJob, WebhookEvent, ConnectorLog,
-    ConnectorApiKey, MarketplaceConnector, CustomConnectorEndpoint,
+from app.models.v4_enterprise import (
+    AdoptionMetricV4,
+    AgentApprovalRequest,
+    AIAuditEvent,
+    AIMonitoringEventV4,
+    AIPolicy,
+    CostSavingsRecordV4,
+    EnterpriseAnalyticsV4,
+    EnterpriseDocument,
+    KnowledgeConnector,
+    KnowledgeSource,
+    ObservabilityDashboard,
 )
 from app.models.v5_collaboration import (
-    CollaborationSession, SessionParticipant, MultimodalMessage,
-    WhiteboardSession, SessionRecording, AIMeetingInsight,
-    CollaborationAgent, AgentSessionLink, ScreenShareSession,
+    AgentSessionLink,
+    AIMeetingInsight,
+    CollaborationAgent,
+    CollaborationSession,
     DocumentCollaboration,
+    MultimodalMessage,
+    ScreenShareSession,
+    SessionParticipant,
+    SessionRecording,
+    WhiteboardSession,
 )
-from app.models.security_event import SecurityEventV6
+from app.models.v5_compliance import (
+    ApprovalHistory,
+    AuditRecord,
+    ComplianceCheck,
+    ComplianceCheckResult,
+    ComplianceDocumentReview,
+    CorrectiveAction,
+    Finding,
+    IndustryCompliancePack,
+    Policy,
+    Regulation,
+    RegulatoryUpdate,
+    RiskScore,
+)
+from app.models.v5_compliance import (
+    ComplianceReport as ComplianceReportV5,
+)
+from app.models.v5_connector_platform import (
+    ConnectorApiKey,
+    ConnectorCredential,
+    ConnectorDefinition,
+    ConnectorIntegration,
+    ConnectorLog,
+    ConnectorPermission,
+    CustomConnectorEndpoint,
+    MarketplaceConnector,
+    SyncJob,
+    WebhookEvent,
+)
+from app.models.v5_copilot import (
+    CopilotAnalytic,
+    CopilotApproval,
+    CopilotConfig,
+    CopilotDomainRule,
+    CopilotKnowledgeLink,
+    CopilotMessage,
+    CopilotRecommendation,
+    CopilotSession,
+    CopilotWorkflow,
+    CopilotWorkflowExecution,
+)
+from app.models.v5_knowledge import (
+    CitationRecord,
+    KnowledgeChunkV5,
+    KnowledgeConnectorV5,
+    KnowledgeDocumentV5,
+    KnowledgeGraphEdge,
+    KnowledgeGraphNode,
+    KnowledgePermissionV5,
+    SearchQueryV5,
+)
+from app.models.v5_simulation import (
+    DigitalTwin,
+    DigitalTwinEntity,
+    Prediction,
+    RiskAssessment,
+    Scenario,
+    Simulation,
+    SimulationModel,
+    SimulationOutcome,
+    SimulationRecommendation,
+    SimulationReport,
+    SimulationVariable,
+)
 from app.models.v6_governance import (
-    PromptRegistry,
-    PromptVersion,
+    AIDecision,
     AIEvaluation,
     EvaluationCase,
-    QualityScore,
     HallucinationEvent,
-    ModelMetric,
     HumanReview,
-    AIDecision,
+    ModelMetric,
+    PromptRegistry,
+    PromptVersion,
+    QualityScore,
     UserFeedback,
 )
-from app.models.agent import (
-    AgentProfile,
-    AgentSkill,
-    AgentMemory,
-    AgentTool,
-    AgentTask,
-    AgentExecution,
-    AgentAnalytics,
-    Workflow,
-    WorkflowStep,
-)
+from app.models.website import Website, WebsiteDeployment
 
 __all__ = [
     "Base", "TimestampMixin", "UUIDMixin",
@@ -258,4 +355,10 @@ __all__ = [
     "AgentAnalytics",
     "Workflow",
     "WorkflowStep",
+    "ActiveAgent",
+    "ActiveAgentLog",
+    "ActiveAgentGoal",
+    "ActiveAgentMemory",
+    "ActiveAgentStatus",
+    "ActiveAgentMode",
 ]

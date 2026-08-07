@@ -2,7 +2,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.global_infrastructure import (
-    AIModelRegistry, MonitoringMetric,
+    AIModelRegistry,
+    MonitoringMetric,
 )
 
 
@@ -31,7 +32,7 @@ class InfraScalingEngine:
         return list(rows.scalars().all())
 
     async def route_model(self, task, complexity="medium", max_cost=None, preferred_provider=None, required_capabilities=None):
-        query = select(AIModelRegistry).where(AIModelRegistry.is_active == True)
+        query = select(AIModelRegistry).where(AIModelRegistry.is_active.is_(True))
         if preferred_provider:
             query = query.where(AIModelRegistry.provider == preferred_provider)
         rows = await self.db.execute(query)

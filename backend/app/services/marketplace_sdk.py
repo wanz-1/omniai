@@ -1,6 +1,5 @@
 from app.services.ai_service import ai_service
 
-
 SDK_TEMPLATES = {
     "python": """
 # OmniAI Python SDK

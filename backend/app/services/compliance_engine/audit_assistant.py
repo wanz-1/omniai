@@ -1,7 +1,9 @@
 import uuid
 from datetime import datetime
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.v5_compliance import AuditRecord
 from app.services.ai_service import ai_service
 
@@ -16,7 +18,9 @@ class AuditAssistant:
             description=description, scope=scope or [], status="planned",
             audit_date=datetime.utcnow(), created_by=created_by,
         )
-        self.db.add(audit); await self.db.commit(); await self.db.refresh(audit)
+        self.db.add(audit)
+        await self.db.commit()
+        await self.db.refresh(audit)
         return audit
 
     async def prepare_checklist(self, audit_id: uuid.UUID) -> list[str]:

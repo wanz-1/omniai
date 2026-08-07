@@ -1,8 +1,11 @@
 import uuid
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.v5_connector_platform import (
-    CustomConnectorEndpoint, ConnectorLog,
+    ConnectorLog,
+    CustomConnectorEndpoint,
 )
 from app.services.ai_service import ai_service
 
@@ -18,7 +21,9 @@ class ApiGateway:
             headers=headers or {}, endpoints=endpoints or [],
             rate_limit=rate_limit, created_by=created_by,
         )
-        self.db.add(endpoint); await self.db.commit(); await self.db.refresh(endpoint)
+        self.db.add(endpoint)
+        await self.db.commit()
+        await self.db.refresh(endpoint)
         return endpoint
 
     async def list_custom_connectors(self, org_id: uuid.UUID) -> list[CustomConnectorEndpoint]:
@@ -32,7 +37,8 @@ class ApiGateway:
         ep = rows.scalar_one_or_none()
         if not ep:
             return False
-        await self.db.delete(ep); await self.db.commit()
+        await self.db.delete(ep)
+        await self.db.commit()
         return True
 
     async def execute_custom_api(self, endpoint_id: uuid.UUID, action: str, params: dict | None) -> dict:

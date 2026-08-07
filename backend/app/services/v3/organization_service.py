@@ -2,7 +2,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.v3_organization import (
-    AIDepartment, AIOrganizationOS, AutonomousWorkflow, DepartmentAgent,
+    AIDepartment,
+    AIOrganizationOS,
+    AutonomousWorkflow,
+    DepartmentAgent,
 )
 from app.services.ai_service import ai_service
 

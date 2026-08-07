@@ -1,8 +1,10 @@
 import uuid
 from datetime import datetime
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.v5_compliance import Policy, ComplianceCheck, ComplianceCheckResult
+
+from app.models.v5_compliance import ComplianceCheck, ComplianceCheckResult, Policy
 from app.services.ai_service import ai_service
 
 
@@ -31,7 +33,9 @@ class PolicyManager:
             status="in_progress", scope=[str(policy_id)] if policy_id else [],
             started_by=uuid.uuid4(), started_at=datetime.utcnow(),
         )
-        self.db.add(check); await self.db.commit(); await self.db.refresh(check)
+        self.db.add(check)
+        await self.db.commit()
+        await self.db.refresh(check)
 
         text = ""
         if policy_id:
@@ -43,8 +47,10 @@ class PolicyManager:
             text = content
 
         if not text:
-            check.status = "completed"; check.completed_at = datetime.utcnow()
-            await self.db.commit(); await self.db.refresh(check)
+            check.status = "completed"
+            check.completed_at = datetime.utcnow()
+            await self.db.commit()
+            await self.db.refresh(check)
             return check
 
         prompt = f"Evaluate this policy for compliance issues:\n\n{text}"
@@ -57,6 +63,8 @@ class PolicyManager:
         )
         self.db.add(result)
         check.results_summary = {"total": 1, "reviewed": 1, "score": 85.0}
-        check.status = "completed"; check.completed_at = datetime.utcnow()
-        await self.db.commit(); await self.db.refresh(check)
+        check.status = "completed"
+        check.completed_at = datetime.utcnow()
+        await self.db.commit()
+        await self.db.refresh(check)
         return check

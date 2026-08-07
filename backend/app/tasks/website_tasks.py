@@ -37,7 +37,7 @@ def build_website(self, website_id: str):
     try:
         return run(_build())
     except Exception as exc:
-        raise self.retry(exc=exc)
+        raise self.retry(exc=exc) from exc
 
 
 @celery_app.task(
@@ -55,7 +55,7 @@ def deploy_website_task(self, website_id: str, platform: str):
         async with session_cm() as db:
             website = await db.get(Website, uuid.UUID(website_id))
             if website is None:
-                raise RuntimeError(f"Website {website_id} not found")
+                raise RuntimeError(f"Website {website_id} not found") from None
 
             url = f"https://{website_id}.{platform}.omniai.app"
             deployment = (
@@ -92,4 +92,4 @@ def deploy_website_task(self, website_id: str, platform: str):
     try:
         return run(_deploy())
     except Exception as exc:
-        raise self.retry(exc=exc)
+        raise self.retry(exc=exc) from exc

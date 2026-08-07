@@ -6,7 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.code_studio import StudioFile, StudioProject, TestRun
 from app.services.ai_service import ai_service
 
-
 TEST_SYSTEM_PROMPTS = {
     "unit": "You are a unit test expert. Generate comprehensive unit tests with good coverage. Include edge cases.",
     "integration": "You are an integration test expert. Generate tests that verify component interactions and data flow.",

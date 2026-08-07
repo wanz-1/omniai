@@ -1,16 +1,26 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.v5_knowledge import KnowledgeDocumentV5, KnowledgeChunkV5, SearchQueryV5, CitationRecord, KnowledgePermissionV5
+
+from app.models.v5_knowledge import (
+    CitationRecord,
+    KnowledgeChunkV5,
+    KnowledgeDocumentV5,
+    KnowledgePermissionV5,
+    SearchQueryV5,
+)
 from app.services.ai_service import ai_service
+
 
 class SearchService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
     async def search(self, organization_id, user_id, query_text, connectors=None, max_results=10, include_citations=True):
-        import time; start = time.time()
-        q = select(KnowledgeDocumentV5).where(KnowledgeDocumentV5.organization_id == organization_id, KnowledgeDocumentV5.is_indexed == True, KnowledgeDocumentV5.is_deleted == False)
-        if connectors: q = q.where(KnowledgeDocumentV5.connector_id.in_(connectors))
+        import time
+        start = time.time()
+        q = select(KnowledgeDocumentV5).where(KnowledgeDocumentV5.organization_id == organization_id, KnowledgeDocumentV5.is_indexed.is_(True), KnowledgeDocumentV5.is_deleted.is_(False))
+        if connectors:
+            q = q.where(KnowledgeDocumentV5.connector_id.in_(connectors))
         rows = await self.db.execute(q.order_by(KnowledgeDocumentV5.indexed_at.desc()).limit(50))
         docs = list(rows.scalars().all())
         results = []
@@ -18,7 +28,8 @@ class SearchService:
         for doc in docs[:max_results]:
             perm_check = await self.db.execute(select(KnowledgePermissionV5).where(KnowledgePermissionV5.document_id == doc.id, KnowledgePermissionV5.principal_id == user_id))
             perm = perm_check.scalar_one_or_none()
-            if not perm and False: continue
+            if not perm and False:
+                continue
             chunks_rows = await self.db.execute(select(KnowledgeChunkV5).where(KnowledgeChunkV5.document_id == doc.id).order_by(KnowledgeChunkV5.chunk_index).limit(3))
             chunks = list(chunks_rows.scalars().all())
             snippet = chunks[0].content[:300] if chunks else (doc.content or "")[:300]
@@ -30,7 +41,8 @@ class SearchService:
         await self.db.commit()
         elapsed = (time.time() - start) * 1000
         sq = SearchQueryV5(organization_id=organization_id, user_id=user_id, query_text=query_text, result_count=len(results), execution_time_ms=elapsed)
-        self.db.add(sq); await self.db.commit()
+        self.db.add(sq)
+        await self.db.commit()
         return {"query": query_text, "results": results, "total_results": len(results), "execution_time_ms": elapsed, "citations": citations if include_citations else None}
 
     async def answer_with_reasoning(self, organization_id, user_id, query_text):

@@ -1,10 +1,12 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.global_infrastructure import (
-    ComplianceReport, DataResidencyConfig, OrganizationPolicy,
+    ComplianceReport,
+    DataResidencyConfig,
+    OrganizationPolicy,
 )
 from app.services.ai_service import ai_service
 
@@ -35,7 +37,7 @@ class InfraComplianceEngine:
         report = ComplianceReport(
             report_type=report_type, title=title, description=description,
             organization_id=organization_id, region_id=region_id,
-            status="draft", generated_at=datetime.now(timezone.utc),
+            status="draft", generated_at=datetime.now(UTC),
         )
         self.db.add(report)
         await self.db.commit()

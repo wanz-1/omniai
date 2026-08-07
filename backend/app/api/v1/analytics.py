@@ -1,12 +1,12 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import select, func, and_
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, get_db
-from app.models.agent import AgentProfile, AgentAnalytics
+from app.models.agent import AgentAnalytics, AgentProfile
 from app.models.organization import Organization, OrganizationMember
 from app.models.subscription import Invoice, Subscription
 from app.models.usage import UsageLog
@@ -27,7 +27,7 @@ async def get_usage_analytics(
     current_user: Annotated[User, Depends(get_current_user)] = None,
     db: Annotated[AsyncSession, Depends(get_db)] = None,
 ):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     start = now - timedelta(days=days)
 
     logs_result = await db.execute(
@@ -38,10 +38,10 @@ async def get_usage_analytics(
     logs = logs_result.scalars().all()
 
     total_calls = len(logs)
-    total_tokens = sum((l.tokens_used or 0) for l in logs)
-    total_credits = sum((l.credits_used or 0) for l in logs)
-    total_duration = sum((l.duration_ms or 0) for l in logs)
-    successful = sum(1 for l in logs if l.success)
+    total_tokens = sum((log.tokens_used or 0) for log in logs)
+    total_credits = sum((log.credits_used or 0) for log in logs)
+    total_duration = sum((log.duration_ms or 0) for log in logs)
+    successful = sum(1 for log in logs if log.success)
     avg_duration = total_duration / total_calls if total_calls else 0
     success_rate = (successful / total_calls * 100) if total_calls else 0
 
@@ -105,7 +105,7 @@ async def revenue_analytics(
     current_user: Annotated[User, Depends(get_current_user)] = None,
     db: Annotated[AsyncSession, Depends(get_db)] = None,
 ):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     month_start = now.replace(hour=0, minute=0, second=0, microsecond=0, day=1)
 
     org_ids_result = await db.execute(
@@ -142,7 +142,7 @@ async def growth_analytics(
     current_user: Annotated[User, Depends(get_current_user)] = None,
     db: Annotated[AsyncSession, Depends(get_db)] = None,
 ):
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     seven_days_ago = now - timedelta(days=7)
 
     total_users = (await db.execute(select(func.count(User.id)))).scalar() or 0

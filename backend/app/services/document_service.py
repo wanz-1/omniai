@@ -1,13 +1,12 @@
 import json
 import uuid
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundError
 from app.models.document import Document, DocumentVersion
-from app.services.prompt_guard import build_user_prompt
 from app.schemas.document import (
     GrammarCorrection,
     GrammarResponse,
@@ -19,6 +18,7 @@ from app.schemas.document import (
     TranslateResponse,
 )
 from app.services.ai_service import ai_service
+from app.services.prompt_guard import build_user_prompt
 
 HUMANIZE_PROMPTS = {
     "academic": (

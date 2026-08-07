@@ -3,8 +3,8 @@ from dataclasses import dataclass, field
 
 from app.services.ai_security.input_scanner import InputScanner, input_scanner
 from app.services.ai_security.output_validator import OutputValidator, output_validator
-from app.services.ai_security.tool_permission import ToolPermissionChecker, tool_permission_checker
 from app.services.ai_security.risk_classifier import RiskLevel
+from app.services.ai_security.tool_permission import ToolPermissionChecker, tool_permission_checker
 
 logger = logging.getLogger("omniai.ai_security")
 

@@ -4,19 +4,19 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 from fastapi.responses import StreamingResponse
-from sqlalchemy import select, delete
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, get_db
 from app.core.exceptions import NotFoundError
 from app.models.agent import (
+    AgentAnalytics,
+    AgentExecution,
+    AgentMemory,
     AgentProfile,
     AgentSkill,
-    AgentMemory,
-    AgentTool,
     AgentTask,
-    AgentExecution,
-    AgentAnalytics,
+    AgentTool,
     Workflow,
     WorkflowStep,
 )
@@ -60,7 +60,7 @@ async def list_agents(
     if template is not None:
         query = query.where(AgentProfile.is_template == template)
     if marketplace:
-        query = query.where(AgentProfile.marketplace_listed == True)
+        query = query.where(AgentProfile.marketplace_listed.is_(True))
     query = query.order_by(AgentProfile.updated_at.desc())
     result = await db.execute(query)
     agents = result.scalars().all()
@@ -106,7 +106,7 @@ async def list_templates(
     db: Annotated[AsyncSession, Depends(get_db)],
     category: str | None = None,
 ):
-    query = select(AgentProfile).where(AgentProfile.is_template == True)
+    query = select(AgentProfile).where(AgentProfile.is_template.is_(True))
     if category:
         query = query.where(AgentProfile.template_category == category)
     result = await db.execute(query.order_by(AgentProfile.download_count.desc()))
@@ -120,8 +120,8 @@ async def list_marketplace(
     category: str | None = None,
 ):
     query = select(AgentProfile).where(
-        AgentProfile.marketplace_listed == True,
-        AgentProfile.published == True,
+        AgentProfile.marketplace_listed.is_(True),
+        AgentProfile.published.is_(True),
     )
     if category:
         query = query.where(AgentProfile.template_category == category)
@@ -390,7 +390,7 @@ async def create_workflow(
     )
     db.add(workflow)
     await db.flush()
-    for i, step_data in enumerate(body.steps):
+    for _i, step_data in enumerate(body.steps):
         step = WorkflowStep(workflow_id=workflow.id, **step_data.model_dump())
         db.add(step)
     await db.flush()
@@ -418,7 +418,7 @@ async def update_workflow(
     workflow.trigger_config = body.trigger_config
 
     await db.execute(delete(WorkflowStep).where(WorkflowStep.workflow_id == workflow_id))
-    for i, step_data in enumerate(body.steps):
+    for _i, step_data in enumerate(body.steps):
         step = WorkflowStep(workflow_id=workflow.id, **step_data.model_dump())
         db.add(step)
     await db.flush()

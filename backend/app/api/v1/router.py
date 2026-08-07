@@ -1,6 +1,50 @@
 from fastapi import APIRouter
 
-from app.api.v1 import auth, users, organizations, projects, documents, websites, bots, chat, code, api_keys, credits, notifications, admin, agents, billing, marketplace, marketplace_extended, analytics, integrations, voice, vision, video, business, agent_network, code_studio, industry_solutions, global_infrastructure, v3_personal, v3_organization, v3_creation, v3_collaboration, v4_cloud, v4_enterprise, v4_ecosystem, v5_knowledge, v5_copilot, v5_simulation, v5_compliance, v5_connector, v5_collaboration, v6_governance
+from app.api.v1 import (
+    active_agents,
+    admin,
+    agent_network,
+    agents,
+    analytics,
+    api_keys,
+    auth,
+    billing,
+    bots,
+    business,
+    chat,
+    code,
+    code_studio,
+    credits,
+    documents,
+    global_infrastructure,
+    industry_solutions,
+    integrations,
+    marketplace,
+    marketplace_extended,
+    notifications,
+    organizations,
+    projects,
+    skills,
+    users,
+    v3_collaboration,
+    v3_creation,
+    v3_organization,
+    v3_personal,
+    v4_cloud,
+    v4_ecosystem,
+    v4_enterprise,
+    v5_collaboration,
+    v5_compliance,
+    v5_connector,
+    v5_copilot,
+    v5_knowledge,
+    v5_simulation,
+    v6_governance,
+    video,
+    vision,
+    voice,
+    websites,
+)
 
 api_v1_router = APIRouter()
 
@@ -18,6 +62,8 @@ api_v1_router.include_router(credits.router, prefix="/credits", tags=["Credits"]
 api_v1_router.include_router(notifications.router, prefix="/notifications", tags=["Notifications"])
 api_v1_router.include_router(admin.router, prefix="/admin", tags=["Admin"])
 api_v1_router.include_router(agents.router, prefix="/agents", tags=["AI Agents"])
+api_v1_router.include_router(active_agents.router, prefix="/active-agents", tags=["Active AI Agents"])
+api_v1_router.include_router(skills.router, prefix="/skills", tags=["Skills"])
 api_v1_router.include_router(billing.router, prefix="/billing", tags=["Billing & Subscriptions"])
 api_v1_router.include_router(marketplace.router, prefix="/marketplace", tags=["Marketplace"])
 api_v1_router.include_router(analytics.router, prefix="/analytics", tags=["Analytics"])

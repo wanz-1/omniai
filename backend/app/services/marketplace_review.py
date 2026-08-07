@@ -4,7 +4,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.marketplace import MarketplaceItem
-from app.models.marketplace_extended import ProductReview, CreatorProfile
+from app.models.marketplace_extended import CreatorProfile, ProductReview
 
 
 class MarketplaceReviewService:
@@ -25,7 +25,7 @@ class MarketplaceReviewService:
 
     async def get_product_reviews(self, product_id: uuid.UUID, limit: int = 50) -> list[ProductReview]:
         result = await self.db.execute(
-            select(ProductReview).where(ProductReview.product_id == product_id, ProductReview.is_approved == True).order_by(ProductReview.created_at.desc()).limit(limit)
+            select(ProductReview).where(ProductReview.product_id == product_id, ProductReview.is_approved.is_(True)).order_by(ProductReview.created_at.desc()).limit(limit)
         )
         return list(result.scalars().all())
 
@@ -38,7 +38,7 @@ class MarketplaceReviewService:
     async def _update_product_rating(self, product_id: uuid.UUID) -> None:
         stats = await self.db.execute(
             select(func.avg(ProductReview.rating), func.count(ProductReview.id))
-            .where(ProductReview.product_id == product_id, ProductReview.is_approved == True)
+            .where(ProductReview.product_id == product_id, ProductReview.is_approved.is_(True))
         )
         avg, count = stats.one()
         item = await self.db.execute(select(MarketplaceItem).where(MarketplaceItem.id == product_id))
@@ -50,7 +50,8 @@ class MarketplaceReviewService:
     async def _update_creator_rating(self, product_id: uuid.UUID) -> None:
         item = await self.db.execute(select(MarketplaceItem).where(MarketplaceItem.id == product_id))
         item_obj = item.scalar_one_or_none()
-        if not item_obj: return
+        if not item_obj:
+            return
 
         creator = await self.db.execute(select(CreatorProfile).where(CreatorProfile.user_id == item_obj.author_id))
         cp = creator.scalar_one_or_none()
@@ -58,7 +59,7 @@ class MarketplaceReviewService:
             result = await self.db.execute(
                 select(func.avg(ProductReview.rating))
                 .join(MarketplaceItem, ProductReview.product_id == MarketplaceItem.id)
-                .where(MarketplaceItem.author_id == item_obj.author_id, ProductReview.is_approved == True)
+                .where(MarketplaceItem.author_id == item_obj.author_id, ProductReview.is_approved.is_(True))
             )
             avg = result.scalar()
             cp.average_rating = round(float(avg), 2) if avg else None

@@ -6,21 +6,28 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.dependencies import get_current_user, get_db
 from app.models.user import User
 from app.schemas.v5_copilot import (
-    CopilotConfigResponse, CopilotSessionResponse, CopilotWorkflowResponse,
-    CopilotWorkflowExecutionResponse, CopilotRecommendationResponse,
-    CopilotApprovalResponse, CopilotChatRequest, CopilotChatResponse,
-    ExecuteWorkflowRequest, ApprovalRequest, ApprovalDecision,
+    ApprovalDecision,
+    ApprovalRequest,
+    CopilotApprovalResponse,
+    CopilotChatRequest,
+    CopilotChatResponse,
+    CopilotConfigResponse,
+    CopilotRecommendationResponse,
+    CopilotSessionResponse,
+    CopilotWorkflowExecutionResponse,
+    CopilotWorkflowResponse,
+    ExecuteWorkflowRequest,
 )
+from app.services.industry_copilot.agriculture_copilot import AgricultureCopilot
+from app.services.industry_copilot.approval_service import ApprovalService
+from app.services.industry_copilot.business_copilot import BusinessCopilot
+from app.services.industry_copilot.copilot_analytics_service import CopilotAnalyticsService
 from app.services.industry_copilot.copilot_engine import CopilotEngine
-from app.services.industry_copilot.ngo_copilot import NGOCopilot
+from app.services.industry_copilot.education_copilot import EducationCopilot
 from app.services.industry_copilot.finance_copilot import FinanceCopilot
 from app.services.industry_copilot.hospitality_copilot import HospitalityCopilot
-from app.services.industry_copilot.education_copilot import EducationCopilot
-from app.services.industry_copilot.agriculture_copilot import AgricultureCopilot
-from app.services.industry_copilot.business_copilot import BusinessCopilot
+from app.services.industry_copilot.ngo_copilot import NGOCopilot
 from app.services.industry_copilot.recommendation_engine import RecommendationEngine
-from app.services.industry_copilot.approval_service import ApprovalService
-from app.services.industry_copilot.copilot_analytics_service import CopilotAnalyticsService
 
 router = APIRouter()
 
@@ -36,9 +43,11 @@ async def chat_with_copilot(req: CopilotChatRequest, current_user: User = Depend
 @router.get("/configs", response_model=list[CopilotConfigResponse])
 async def list_copilot_configs(industry: str | None = None, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     from sqlalchemy import select
+
     from app.models.v5_copilot import CopilotConfig
     q = select(CopilotConfig).where(CopilotConfig.organization_id == (current_user.organization_id or current_user.id))
-    if industry: q = q.where(CopilotConfig.industry == industry)
+    if industry:
+        q = q.where(CopilotConfig.industry == industry)
     rows = await db.execute(q)
     return list(rows.scalars().all())
 
@@ -52,9 +61,11 @@ async def create_copilot_config(industry: str, name: str | None = None, current_
 @router.get("/sessions", response_model=list[CopilotSessionResponse])
 async def list_sessions(copilot_id: uuid.UUID | None = None, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     from sqlalchemy import select
+
     from app.models.v5_copilot import CopilotSession
     q = select(CopilotSession).where(CopilotSession.organization_id == (current_user.organization_id or current_user.id))
-    if copilot_id: q = q.where(CopilotSession.copilot_id == copilot_id)
+    if copilot_id:
+        q = q.where(CopilotSession.copilot_id == copilot_id)
     q = q.order_by(CopilotSession.updated_at.desc())
     rows = await db.execute(q)
     return list(rows.scalars().all())
@@ -63,6 +74,7 @@ async def list_sessions(copilot_id: uuid.UUID | None = None, current_user: User 
 @router.get("/sessions/{session_id}/messages", response_model=list)
 async def get_session_messages(session_id: uuid.UUID, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     from sqlalchemy import select
+
     from app.models.v5_copilot import CopilotMessage
     rows = await db.execute(select(CopilotMessage).where(CopilotMessage.session_id == session_id).order_by(CopilotMessage.created_at))
     return [{"id": str(m.id), "role": m.role, "content": m.content, "created_at": m.created_at.isoformat() if m.created_at else None} for m in rows.scalars().all()]
@@ -176,9 +188,13 @@ async def business_customer_insights(customer_data: str, current_user: User = De
 @router.post("/workflows", response_model=CopilotWorkflowResponse)
 async def create_workflow(name: str, description: str, workflow_type: str, steps: str, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     import json
+
     from app.models.v5_copilot import CopilotWorkflow
     wf = CopilotWorkflow(organization_id=current_user.organization_id or current_user.id, name=name, description=description, workflow_type=workflow_type, steps=json.loads(steps) if isinstance(steps, str) else steps, created_by=current_user.id)
-    db.add(wf); await db.commit(); await db.refresh(wf); return wf
+    db.add(wf)
+    await db.commit()
+    await db.refresh(wf)
+    return wf
 
 
 @router.post("/workflows/execute", response_model=CopilotWorkflowExecutionResponse)
@@ -191,6 +207,7 @@ async def execute_workflow(req: ExecuteWorkflowRequest, current_user: User = Dep
 @router.get("/workflows", response_model=list[CopilotWorkflowResponse])
 async def list_workflows(industry: str | None = None, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     from sqlalchemy import select
+
     from app.models.v5_copilot import CopilotWorkflow
     q = select(CopilotWorkflow).where(CopilotWorkflow.organization_id == (current_user.organization_id or current_user.id))
     rows = await db.execute(q)

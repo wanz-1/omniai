@@ -1,8 +1,16 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import select, func
+
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.v5_compliance import ComplianceReport, Policy, ComplianceCheck, Finding, CorrectiveAction
+
+from app.models.v5_compliance import (
+    ComplianceCheck,
+    ComplianceReport,
+    CorrectiveAction,
+    Finding,
+    Policy,
+)
 from app.services.ai_service import ai_service
 
 
@@ -58,5 +66,7 @@ class ComplianceReporting:
             report_type=report_type, content={"stats": stats, "analysis": content_text or ""},
             generated_by=uuid.uuid4(), generated_at=datetime.utcnow(),
         )
-        self.db.add(report); await self.db.commit(); await self.db.refresh(report)
+        self.db.add(report)
+        await self.db.commit()
+        await self.db.refresh(report)
         return report

@@ -7,7 +7,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.code_studio import SecurityScan, StudioFile, StudioProject
 from app.services.ai_service import ai_service
 
-
 SECURITY_SYSTEM_PROMPT = """You are an expert Security Engineer AI. Perform a comprehensive security scan:
 1. Check for OWASP Top 10 vulnerabilities
 2. Analyze authentication/authorization

@@ -6,20 +6,30 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.dependencies import get_current_user, get_db
 from app.models.user import User
 from app.schemas.v5_compliance import (
-    PolicyResponse, RegulationResponse, ComplianceCheckResponse, AuditRecordResponse,
-    FindingResponse, CorrectiveActionResponse, ComplianceReportResponse, ComplianceDocumentReviewResponse,
-    AnalyzeDocumentRequest, CheckPolicyRequest, CreateAuditRequest,
-    CreateFindingRequest, CreateCorrectiveActionRequest, ReviewDocumentRequest,
+    AnalyzeDocumentRequest,
+    AuditRecordResponse,
+    CheckPolicyRequest,
+    ComplianceCheckResponse,
+    ComplianceDocumentReviewResponse,
+    ComplianceReportResponse,
+    CorrectiveActionResponse,
+    CreateAuditRequest,
+    CreateCorrectiveActionRequest,
+    CreateFindingRequest,
+    FindingResponse,
+    PolicyResponse,
+    RegulationResponse,
+    ReviewDocumentRequest,
 )
-from app.services.compliance_engine.policy_manager import PolicyManager
-from app.services.compliance_engine.regulation_monitor import RegulationMonitor
-from app.services.compliance_engine.document_reviewer import DocumentReviewer
 from app.services.compliance_engine.audit_assistant import AuditAssistant
-from app.services.compliance_engine.risk_engine import RiskEngine
 from app.services.compliance_engine.compliance_dashboard_service import ComplianceDashboardService
-from app.services.compliance_engine.corrective_action_service import CorrectiveActionService
 from app.services.compliance_engine.compliance_knowledge_base import ComplianceKnowledgeBase
 from app.services.compliance_engine.compliance_reporting import ComplianceReporting
+from app.services.compliance_engine.corrective_action_service import CorrectiveActionService
+from app.services.compliance_engine.document_reviewer import DocumentReviewer
+from app.services.compliance_engine.policy_manager import PolicyManager
+from app.services.compliance_engine.regulation_monitor import RegulationMonitor
+from app.services.compliance_engine.risk_engine import RiskEngine
 
 router = APIRouter()
 
@@ -39,9 +49,11 @@ async def check_policy(req: CheckPolicyRequest, current_user: User = Depends(get
 @router.get("/policies", response_model=list[PolicyResponse])
 async def list_policies(policy_type: str | None = None, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     from sqlalchemy import select
+
     from app.models.v5_compliance import Policy
     q = select(Policy).where(Policy.organization_id == (current_user.organization_id or current_user.id))
-    if policy_type: q = q.where(Policy.policy_type == policy_type)
+    if policy_type:
+        q = q.where(Policy.policy_type == policy_type)
     q = q.order_by(Policy.created_at.desc())
     rows = await db.execute(q)
     return list(rows.scalars().all())
@@ -69,9 +81,11 @@ async def create_audit(req: CreateAuditRequest, current_user: User = Depends(get
 @router.get("/audits", response_model=list[AuditRecordResponse])
 async def list_audits(audit_type: str | None = None, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     from sqlalchemy import select
+
     from app.models.v5_compliance import AuditRecord
     q = select(AuditRecord).where(AuditRecord.organization_id == (current_user.organization_id or current_user.id))
-    if audit_type: q = q.where(AuditRecord.audit_type == audit_type)
+    if audit_type:
+        q = q.where(AuditRecord.audit_type == audit_type)
     q = q.order_by(AuditRecord.created_at.desc())
     rows = await db.execute(q)
     return list(rows.scalars().all())
@@ -95,16 +109,22 @@ async def generate_audit_package(audit_id: uuid.UUID, current_user: User = Depen
 async def create_finding(req: CreateFindingRequest, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     from app.models.v5_compliance import Finding
     f = Finding(organization_id=current_user.organization_id or current_user.id, audit_id=req.audit_id, finding_type=req.finding_type, title=req.title, description=req.description, severity=req.severity, status="open", created_by=current_user.id)
-    db.add(f); await db.commit(); await db.refresh(f); return f
+    db.add(f)
+    await db.commit()
+    await db.refresh(f)
+    return f
 
 
 @router.get("/findings", response_model=list[FindingResponse])
 async def list_findings(severity: str | None = None, status: str | None = None, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     from sqlalchemy import select
+
     from app.models.v5_compliance import Finding
     q = select(Finding).where(Finding.organization_id == (current_user.organization_id or current_user.id))
-    if severity: q = q.where(Finding.severity == severity)
-    if status: q = q.where(Finding.status == status)
+    if severity:
+        q = q.where(Finding.severity == severity)
+    if status:
+        q = q.where(Finding.status == status)
     q = q.order_by(Finding.created_at.desc())
     rows = await db.execute(q)
     return list(rows.scalars().all())
@@ -121,9 +141,11 @@ async def create_corrective_action(req: CreateCorrectiveActionRequest, current_u
 @router.get("/corrective-actions", response_model=list[CorrectiveActionResponse])
 async def list_corrective_actions(status: str | None = None, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     from sqlalchemy import select
+
     from app.models.v5_compliance import CorrectiveAction
     q = select(CorrectiveAction).where(CorrectiveAction.organization_id == (current_user.organization_id or current_user.id))
-    if status: q = q.where(CorrectiveAction.status == status)
+    if status:
+        q = q.where(CorrectiveAction.status == status)
     q = q.order_by(CorrectiveAction.created_at.desc())
     rows = await db.execute(q)
     return list(rows.scalars().all())
@@ -145,9 +167,11 @@ async def register_regulation(name: str, jurisdiction: str, category: str, descr
 @router.get("/regulations", response_model=list[RegulationResponse])
 async def list_regulations(category: str | None = None, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     from sqlalchemy import select
+
     from app.models.v5_compliance import Regulation
     q = select(Regulation).where(Regulation.organization_id == (current_user.organization_id or current_user.id))
-    if category: q = q.where(Regulation.category == category)
+    if category:
+        q = q.where(Regulation.category == category)
     q = q.order_by(Regulation.created_at.desc())
     rows = await db.execute(q)
     return list(rows.scalars().all())

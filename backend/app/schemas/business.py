@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime
-from pydantic import BaseModel
+
+from pydantic import BaseModel, ConfigDict
 
 
 class AgentQueryRequest(BaseModel):
@@ -31,8 +32,7 @@ class BusinessMetricResponse(BaseModel):
     source: str | None = None
     created_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class BusinessReportResponse(BaseModel):
@@ -48,8 +48,7 @@ class BusinessReportResponse(BaseModel):
     created_at: datetime | None = None
     updated_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ApprovalRequestCreate(BaseModel):
@@ -75,8 +74,7 @@ class ApprovalRequestResponse(BaseModel):
     created_at: datetime | None = None
     decided_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class FinancialRecordCreate(BaseModel):
@@ -109,8 +107,7 @@ class FinancialRecordResponse(BaseModel):
     approval_status: str
     created_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class KnowledgeDocumentCreate(BaseModel):
@@ -133,8 +130,7 @@ class KnowledgeDocumentResponse(BaseModel):
     is_active: bool = True
     created_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class WorkflowStep(BaseModel):
@@ -162,8 +158,7 @@ class WorkflowResponse(BaseModel):
     last_run_at: datetime | None = None
     created_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class WorkflowExecutionResponse(BaseModel):
@@ -178,5 +173,4 @@ class WorkflowExecutionResponse(BaseModel):
     completed_at: datetime | None = None
     created_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

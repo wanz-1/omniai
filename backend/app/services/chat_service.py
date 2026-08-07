@@ -1,6 +1,6 @@
-import uuid
 import time
-from typing import AsyncGenerator
+import uuid
+from collections.abc import AsyncGenerator
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession

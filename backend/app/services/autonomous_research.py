@@ -1,12 +1,11 @@
 import json
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.agent_network import AutonomousResearch
 from app.services.ai_service import ai_service
-
 
 RESEARCH_SYSTEM_PROMPT = """You are an autonomous research AI. Your process:
 1. Analyze the research topic and determine key questions
@@ -58,7 +57,7 @@ class AutonomousResearchService:
             research.recommendations = findings.get("recommendations", [])
 
             research.status = "completed"
-            research.completed_at = datetime.now(timezone.utc)
+            research.completed_at = datetime.now(UTC)
         except Exception as e:
             research.status = "failed"
             research.findings = {"error": str(e)}

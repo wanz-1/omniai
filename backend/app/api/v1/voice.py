@@ -1,7 +1,7 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, UploadFile, Form
+from fastapi import APIRouter, Depends, File, Form, UploadFile
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,12 +10,12 @@ from app.core.exceptions import NotFoundError
 from app.models.media import VoiceSession
 from app.models.user import User
 from app.schemas.voice import (
-    VoiceSessionResponse,
     VoiceMessageResponse,
     VoiceSessionCreateRequest,
+    VoiceSessionResponse,
 )
-from app.services.voice_service import VoiceService
 from app.services.ai_model_router import ai_model_router
+from app.services.voice_service import VoiceService
 
 router = APIRouter()
 

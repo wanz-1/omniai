@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime
-from pydantic import BaseModel
+
+from pydantic import BaseModel, ConfigDict
 
 
 class StudioProjectCreate(BaseModel):
@@ -31,8 +32,7 @@ class StudioProjectResponse(BaseModel):
     created_at: datetime | None = None
     updated_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class StudioFileResponse(BaseModel):
@@ -44,8 +44,7 @@ class StudioFileResponse(BaseModel):
     size: int
     is_binary: bool
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AppGenerationRequest(BaseModel):
@@ -113,8 +112,7 @@ class RepositoryResponse(BaseModel):
     is_private: bool
     created_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class BuildResponse(BaseModel):
@@ -129,8 +127,7 @@ class BuildResponse(BaseModel):
     started_at: datetime | None = None
     completed_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class DeploymentResponse(BaseModel):
@@ -143,8 +140,7 @@ class DeploymentResponse(BaseModel):
     started_at: datetime | None = None
     completed_at: datetime | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TestRunResponse(BaseModel):
@@ -159,8 +155,7 @@ class TestRunResponse(BaseModel):
     coverage: float | None = None
     duration_ms: int | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class SecurityScanResponse(BaseModel):
@@ -173,8 +168,7 @@ class SecurityScanResponse(BaseModel):
     recommendations: list | None = None
     severity_counts: dict | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class DocGenResponse(BaseModel):
@@ -185,8 +179,7 @@ class DocGenResponse(BaseModel):
     format: str
     sections: list | None = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class DeploymentRequest(BaseModel):

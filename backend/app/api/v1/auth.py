@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request
@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.core.dependencies import get_db, get_current_user
+from app.core.dependencies import get_current_user, get_db
 from app.core.exceptions import AuthError, NotFoundError, ValidationError
 from app.core.security import (
     create_access_token,
@@ -21,7 +21,6 @@ from app.core.security import (
     verify_password,
 )
 from app.models.user import User
-from app.services.security_audit import SecurityAuditService
 from app.schemas.auth import (
     LoginRequest,
     OAuthCallbackRequest,
@@ -34,6 +33,7 @@ from app.schemas.auth import (
     TwoFactorVerifyRequest,
     UserResponse,
 )
+from app.services.security_audit import SecurityAuditService
 
 router = APIRouter()
 
@@ -61,8 +61,8 @@ async def _create_session(
         user_agent=user_agent or None,
         device_name=device_name or None,
         is_active=True,
-        expires_at=datetime.now(timezone.utc) + timedelta(days=settings.refresh_token_expire_days),
-        last_activity_at=datetime.now(timezone.utc),
+        expires_at=datetime.now(UTC) + timedelta(days=settings.refresh_token_expire_days),
+        last_activity_at=datetime.now(UTC),
     )
     db.add(session)
     await db.flush()
@@ -139,7 +139,7 @@ async def login(
         await _record_login_audit(db, success=False, user_id="", ip=ip, user_agent=ua, detail="Unknown account or missing password hash")
         raise AuthError("Invalid email or password")
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     if user.locked_until and user.locked_until > now:
         await _record_login_audit(
@@ -227,7 +227,7 @@ async def refresh(
         )
         raise AuthError("Invalid refresh token")
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     if not session.is_active or (session.expires_at and session.expires_at < now):
         session.is_active = False
@@ -290,7 +290,7 @@ async def two_factor_login(
     if not verify_2fa_code(user.two_factor_secret, body.code):
         raise AuthError("Invalid 2FA code")
 
-    user.last_login_at = datetime.now(timezone.utc)
+    user.last_login_at = datetime.now(UTC)
     user.failed_attempts = 0
     user.locked_until = None
     await db.flush()
@@ -310,7 +310,7 @@ async def list_sessions(
     result = await db.execute(
         select(UserSession).where(
             UserSession.user_id == current_user.id,
-            UserSession.is_active == True,
+            UserSession.is_active.is_(True),
         ).order_by(UserSession.last_activity_at.desc())
     )
     return result.scalars().all()
@@ -360,7 +360,7 @@ async def logout(
 
     if session:
         session.is_active = False
-        session.last_activity_at = datetime.now(timezone.utc)
+        session.last_activity_at = datetime.now(UTC)
         await db.flush()
         ip, ua = _client_context(request)
         audit = SecurityAuditService(db)
@@ -383,13 +383,13 @@ async def logout_all(
     result = await db.execute(
         select(UserSession).where(
             UserSession.user_id == current_user.id,
-            UserSession.is_active == True,
+            UserSession.is_active.is_(True),
         )
     )
     sessions = result.scalars().all()
     for session in sessions:
         session.is_active = False
-        session.last_activity_at = datetime.now(timezone.utc)
+        session.last_activity_at = datetime.now(UTC)
     await db.flush()
 
     ip, ua = _client_context(request)

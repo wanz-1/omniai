@@ -8,6 +8,21 @@ interface StreamCallbacks {
   onError: (error: Error) => void;
 }
 
+interface SSEEvent {
+  type?: string;
+  content?: string;
+  [key: string]: unknown;
+}
+
+function safeGetToken(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return localStorage.getItem("access_token");
+  } catch {
+    return null;
+  }
+}
+
 export function useStreamingAI() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -22,12 +37,12 @@ export function useStreamingAI() {
       abortRef.current = new AbortController();
 
       try {
-        const token = localStorage.getItem("access_token");
+        const token = safeGetToken();
         const response = await fetch(url, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
           },
           body: JSON.stringify(body),
           signal: abortRef.current.signal,
@@ -55,15 +70,20 @@ export function useStreamingAI() {
             if (!line.startsWith("data: ")) continue;
             const data = line.slice(6).trim();
             if (!data) continue;
+            if (data === "[DONE]") break;
 
             try {
-              const parsed = JSON.parse(data);
+              const parsed = JSON.parse(data) as SSEEvent;
               if (parsed.type === "done") break;
-              if (parsed.type === "token") {
+              if (parsed.type === "token" && typeof parsed.content === "string") {
+                bufferRef.current += parsed.content;
+                callbacks.onToken(parsed.content);
+              } else if (typeof parsed.content === "string") {
                 bufferRef.current += parsed.content;
                 callbacks.onToken(parsed.content);
               }
             } catch {
+              // Fallback: treat raw line as token
               bufferRef.current += data;
               callbacks.onToken(data);
             }
@@ -71,10 +91,11 @@ export function useStreamingAI() {
         }
 
         callbacks.onComplete(bufferRef.current);
-      } catch (err: any) {
-        if (err.name === "AbortError") return;
-        setError(err);
-        callbacks.onError(err);
+      } catch (err) {
+        if (err instanceof Error && err.name === "AbortError") return;
+        const errorObj = err instanceof Error ? err : new Error(String(err));
+        setError(errorObj);
+        callbacks.onError(errorObj);
       } finally {
         setIsStreaming(false);
       }
@@ -83,7 +104,11 @@ export function useStreamingAI() {
   );
 
   const cancel = useCallback(() => {
-    abortRef.current?.abort();
+    try {
+      abortRef.current?.abort();
+    } catch {
+      // ignore
+    }
     setIsStreaming(false);
   }, []);
 

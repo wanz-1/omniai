@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,16 +15,21 @@ class MarketplaceCreatorService:
     async def get_or_create_profile(self, user_id: uuid.UUID, display_name: str | None = None) -> CreatorProfile:
         result = await self.db.execute(select(CreatorProfile).where(CreatorProfile.user_id == user_id))
         profile = result.scalar_one_or_none()
-        if profile: return profile
+        if profile:
+            return profile
         profile = CreatorProfile(user_id=user_id, display_name=display_name or "Creator")
-        self.db.add(profile); await self.db.commit(); await self.db.refresh(profile)
+        self.db.add(profile)
+        await self.db.commit()
+        await self.db.refresh(profile)
         return profile
 
     async def update_profile(self, user_id: uuid.UUID, **kwargs) -> CreatorProfile:
         profile = await self.get_or_create_profile(user_id)
         for k, v in kwargs.items():
-            if hasattr(profile, k): setattr(profile, k, v)
-        await self.db.commit(); await self.db.refresh(profile)
+            if hasattr(profile, k):
+                setattr(profile, k, v)
+        await self.db.commit()
+        await self.db.refresh(profile)
         return profile
 
     async def get_dashboard(self, user_id: uuid.UUID) -> dict:
@@ -43,7 +48,7 @@ class MarketplaceCreatorService:
         )
         sales = list(sales_result.scalars().all())
 
-        thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
+        thirty_days_ago = datetime.now(UTC) - timedelta(days=30)
         analytics_result = await self.db.execute(
             select(func.sum(ProductAnalytic.views), func.sum(ProductAnalytic.installs), func.sum(ProductAnalytic.revenue))
             .where(ProductAnalytic.product_id.in_([p.id for p in products]), ProductAnalytic.date >= thirty_days_ago)

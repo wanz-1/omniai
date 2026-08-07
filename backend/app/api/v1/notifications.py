@@ -2,7 +2,7 @@ import uuid
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
-from sqlalchemy import select, func, update
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, get_db
@@ -23,7 +23,7 @@ async def list_notifications(
 ):
     query = select(Notification).where(Notification.user_id == current_user.id)
     if unread_only:
-        query = query.where(Notification.is_read == False)
+        query = query.where(Notification.is_read.is_(False))
     query = query.order_by(Notification.created_at.desc()).offset((page - 1) * limit).limit(limit)
 
     result = await db.execute(query)
@@ -45,7 +45,7 @@ async def unread_count(
 ):
     result = await db.execute(
         select(func.count(Notification.id))
-        .where(Notification.user_id == current_user.id, Notification.is_read == False)
+        .where(Notification.user_id == current_user.id, Notification.is_read.is_(False))
     )
     return {"unread_count": result.scalar() or 0}
 
@@ -71,7 +71,7 @@ async def mark_all_read(
 ):
     await db.execute(
         update(Notification)
-        .where(Notification.user_id == current_user.id, Notification.is_read == False)
+        .where(Notification.user_id == current_user.id, Notification.is_read.is_(False))
         .values(is_read=True)
     )
     await db.flush()

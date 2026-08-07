@@ -1,12 +1,11 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.agent_network import AgentMessage
 from app.services.ai_service import ai_service
-
 
 COMMUNICATION_SYSTEM_PROMPT = """You are an AI agent messaging coordinator. 
 Format agent-to-agent communications clearly and actionably.
@@ -90,7 +89,7 @@ class AgentCommunicationService:
         msg = result.scalar_one_or_none()
         if msg:
             msg.status = "read"
-            msg.read_at = datetime.now(timezone.utc)
+            msg.read_at = datetime.now(UTC)
             await self.db.commit()
 
     async def delegate_task(

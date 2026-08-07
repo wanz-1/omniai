@@ -2,7 +2,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.v3_personal import (
-    ExecutiveAssistant, PersonalAIAssistant, PersonalMemory, PersonalTask,
+    ExecutiveAssistant,
+    PersonalAIAssistant,
+    PersonalMemory,
+    PersonalTask,
 )
 from app.services.ai_service import ai_service
 

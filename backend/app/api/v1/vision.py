@@ -11,8 +11,8 @@ from app.models.media import MediaAsset
 from app.models.user import User
 from app.schemas.vision import (
     AnalyzeImageResponse,
-    OCRResponse,
     MediaAssetResponse,
+    OCRResponse,
     ScanDocumentResponse,
 )
 from app.services.vision_service import VisionService

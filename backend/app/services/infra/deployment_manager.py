@@ -1,10 +1,12 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.global_infrastructure import (
-    ClusterDeployment, InfrastructureRegion, ServiceDeployment,
+    ClusterDeployment,
+    InfrastructureRegion,
+    ServiceDeployment,
 )
 
 
@@ -71,6 +73,6 @@ class InfraDeploymentManager:
         if not cluster:
             return None
         cluster.health_status = status
-        cluster.last_health_check = datetime.now(timezone.utc)
+        cluster.last_health_check = datetime.now(UTC)
         await self.db.commit()
         return cluster

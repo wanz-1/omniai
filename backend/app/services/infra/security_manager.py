@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -39,7 +39,7 @@ class InfraSecurityManager:
         if not event:
             return None
         event.is_resolved = True
-        event.resolved_at = datetime.now(timezone.utc)
+        event.resolved_at = datetime.now(UTC)
         event.action_taken = action_taken
         await self.db.commit()
         await self.db.refresh(event)

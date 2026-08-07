@@ -1,14 +1,18 @@
-import uuid
 import json
-from datetime import datetime, timedelta, timezone
+import uuid
+from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import select, func, and_
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import AppError
 from app.models.business import (
-    ApprovalRequest, BusinessMetric, BusinessReport,
-    BusinessWorkflow, BusinessWorkflowExecution, FinancialRecord,
+    ApprovalRequest,
+    BusinessMetric,
+    BusinessReport,
+    BusinessWorkflow,
+    BusinessWorkflowExecution,
+    FinancialRecord,
     KnowledgeDocument,
 )
 from app.services.ai_service import ai_service
@@ -122,7 +126,7 @@ class BusinessAgentService:
         return report
 
     async def _get_recent_metrics(self, org_id: uuid.UUID, agent_type: str, days: int = 90) -> list[dict]:
-        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+        cutoff = datetime.now(UTC) - timedelta(days=days)
         result = await self.db.execute(
             select(BusinessMetric).where(
                 and_(
@@ -150,7 +154,7 @@ class BusinessAgentService:
             select(KnowledgeDocument).where(
                 and_(
                     KnowledgeDocument.organization_id == org_id,
-                    KnowledgeDocument.is_active == True,
+                    KnowledgeDocument.is_active.is_(True),
                 )
             ).limit(limit)
         )
@@ -239,7 +243,7 @@ class KnowledgeService:
             select(KnowledgeDocument).where(
                 and_(
                     KnowledgeDocument.organization_id == org_id,
-                    KnowledgeDocument.is_active == True,
+                    KnowledgeDocument.is_active.is_(True),
                 )
             ).limit(50)
         )
@@ -301,7 +305,7 @@ class ApprovalService:
         req.status = "approved"
         req.approver_id = approver_id
         req.decision_notes = notes
-        req.decided_at = datetime.now(timezone.utc)
+        req.decided_at = datetime.now(UTC)
         await self.db.flush()
         return req
 
@@ -312,7 +316,7 @@ class ApprovalService:
         req.status = "rejected"
         req.approver_id = approver_id
         req.decision_notes = reason
-        req.decided_at = datetime.now(timezone.utc)
+        req.decided_at = datetime.now(UTC)
         await self.db.flush()
         return req
 
@@ -358,7 +362,7 @@ class FinancialAnalysisService:
             amount=amount,
             description=description,
             currency=currency,
-            transaction_date=transaction_date or datetime.now(timezone.utc),
+            transaction_date=transaction_date or datetime.now(UTC),
             reference=reference,
             donor=donor,
             grant_code=grant_code,
@@ -412,7 +416,7 @@ class FinancialAnalysisService:
         }
 
     async def forecast_budget(self, org_id: uuid.UUID, months: int = 12) -> dict:
-        cutoff = datetime.now(timezone.utc) - timedelta(days=months * 30)
+        cutoff = datetime.now(UTC) - timedelta(days=months * 30)
         result = await self.db.execute(
             select(
                 func.date_trunc("month", FinancialRecord.transaction_date).label("month"),
@@ -478,7 +482,7 @@ class BusinessWorkflowService:
             current_step=0,
             total_steps=len(wf.steps),
             input_data=input_data,
-            started_at=datetime.now(timezone.utc),
+            started_at=datetime.now(UTC),
         )
         self.db.add(execution)
         await self.db.flush()
@@ -487,8 +491,8 @@ class BusinessWorkflowService:
             result = await self._run_steps(wf.steps, input_data or {}, execution.id)
             execution.output_data = result
             execution.status = "completed"
-            execution.completed_at = datetime.now(timezone.utc)
-            wf.last_run_at = datetime.now(timezone.utc)
+            execution.completed_at = datetime.now(UTC)
+            wf.last_run_at = datetime.now(UTC)
         except Exception as e:
             execution.status = "failed"
             execution.error = str(e)
@@ -498,7 +502,7 @@ class BusinessWorkflowService:
 
     async def _run_steps(self, steps: list[dict], input_data: dict, execution_id: uuid.UUID) -> dict:
         context = dict(input_data)
-        for i, step in enumerate(steps):
+        for _i, step in enumerate(steps):
             step_type = step.get("type", "action")
             if step_type == "ai_query":
                 context = await self._step_ai_query(step, context)

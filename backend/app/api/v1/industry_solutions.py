@@ -4,19 +4,32 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.dependencies import get_current_user
-from app.core.dependencies import get_db
+from app.core.dependencies import get_current_user, get_db
 from app.models.industry_solutions import (
-    Industry, IndustryAgent, IndustryAnalytic,
-    IndustryKnowledgeBase, IndustryTemplate, IndustryWorkflow, SolutionPackage,
+    Industry,
+    IndustryAgent,
+    IndustryAnalytic,
+    IndustryKnowledgeBase,
+    IndustryTemplate,
+    IndustryWorkflow,
+    SolutionPackage,
 )
 from app.models.user import User
 from app.schemas.industry_solutions import (
-    ComplianceRuleCreate, ComplianceRuleResponse, IndustryAgentCreate,
-    IndustryAgentResponse, IndustryQuery, IndustryQueryResponse,
-    IndustryResponse, IndustryTemplateCreate, IndustryTemplateResponse,
-    IndustryWorkflowCreate, IndustryWorkflowResponse, KnowledgeBaseCreate,
-    KnowledgeBaseResponse, SolutionPackageResponse,
+    ComplianceRuleCreate,
+    ComplianceRuleResponse,
+    IndustryAgentCreate,
+    IndustryAgentResponse,
+    IndustryQuery,
+    IndustryQueryResponse,
+    IndustryResponse,
+    IndustryTemplateCreate,
+    IndustryTemplateResponse,
+    IndustryWorkflowCreate,
+    IndustryWorkflowResponse,
+    KnowledgeBaseCreate,
+    KnowledgeBaseResponse,
+    SolutionPackageResponse,
 )
 from app.services.industry.compliance_engine import IndustryComplianceEngine
 from app.services.industry.industry_agent_manager import IndustryAgentManager

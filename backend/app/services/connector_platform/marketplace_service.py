@@ -1,8 +1,11 @@
 import uuid
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.v5_connector_platform import (
-    ConnectorDefinition, MarketplaceConnector,
+    ConnectorDefinition,
+    MarketplaceConnector,
 )
 
 
@@ -16,7 +19,7 @@ class MarketplaceService:
         ).join(
             MarketplaceConnector, ConnectorDefinition.id == MarketplaceConnector.connector_id
         ).where(
-            ConnectorDefinition.is_active == True
+            ConnectorDefinition.is_active.is_(True)
         )
         if category:
             q = q.where(ConnectorDefinition.category == category)

@@ -1,64 +1,98 @@
 import uuid
 from datetime import datetime
-from pydantic import BaseModel
+
+from pydantic import BaseModel, ConfigDict
 
 
 class KnowledgeConnectorV5Response(BaseModel):
-    id: uuid.UUID; organization_id: uuid.UUID; name: str
-    connector_type: str; auth_status: str; is_active: bool = True
-    last_sync_at: datetime | None = None; total_documents: int = 0
+    id: uuid.UUID
+    organization_id: uuid.UUID
+    name: str
+    connector_type: str
+    auth_status: str
+    is_active: bool = True
+    last_sync_at: datetime | None = None
+    total_documents: int = 0
     webhook_url: str | None = None
-    class Config: from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class KnowledgeDocumentV5Response(BaseModel):
-    id: uuid.UUID; connector_id: uuid.UUID; organization_id: uuid.UUID
-    title: str; file_type: str | None = None; file_size: int | None = None
-    url: str | None = None; path: str | None = None
-    author: str | None = None; indexed_at: datetime | None = None
-    is_indexed: bool = False; is_deleted: bool = False
-    class Config: from_attributes = True
+    id: uuid.UUID
+    connector_id: uuid.UUID
+    organization_id: uuid.UUID
+    title: str
+    file_type: str | None = None
+    file_size: int | None = None
+    url: str | None = None
+    path: str | None = None
+    author: str | None = None
+    indexed_at: datetime | None = None
+    is_indexed: bool = False
+    is_deleted: bool = False
+    model_config = ConfigDict(from_attributes=True)
 
 
 class KnowledgeChunkV5Response(BaseModel):
-    id: uuid.UUID; document_id: uuid.UUID; chunk_index: int
-    content: str | None = None; token_count: int | None = None
-    class Config: from_attributes = True
+    id: uuid.UUID
+    document_id: uuid.UUID
+    chunk_index: int
+    content: str | None = None
+    token_count: int | None = None
+    model_config = ConfigDict(from_attributes=True)
 
 
 class KnowledgeGraphNodeResponse(BaseModel):
-    id: uuid.UUID; organization_id: uuid.UUID; node_type: str
-    external_id: str | None = None; name: str
+    id: uuid.UUID
+    organization_id: uuid.UUID
+    node_type: str
+    external_id: str | None = None
+    name: str
     properties: dict | None = None
-    class Config: from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class KnowledgeGraphEdgeResponse(BaseModel):
-    id: uuid.UUID; source_node_id: uuid.UUID; target_node_id: uuid.UUID
-    edge_type: str; properties: dict | None = None
+    id: uuid.UUID
+    source_node_id: uuid.UUID
+    target_node_id: uuid.UUID
+    edge_type: str
+    properties: dict | None = None
     weight: float | None = None
-    class Config: from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class KnowledgePermissionV5Response(BaseModel):
-    id: uuid.UUID; document_id: uuid.UUID; organization_id: uuid.UUID
-    principal_type: str; principal_id: uuid.UUID; permission_level: str
-    class Config: from_attributes = True
+    id: uuid.UUID
+    document_id: uuid.UUID
+    organization_id: uuid.UUID
+    principal_type: str
+    principal_id: uuid.UUID
+    permission_level: str
+    model_config = ConfigDict(from_attributes=True)
 
 
 class SearchQueryV5Response(BaseModel):
-    id: uuid.UUID; organization_id: uuid.UUID; user_id: uuid.UUID
-    query_text: str; filters: dict | None = None
-    result_count: int | None = None; execution_time_ms: float | None = None
+    id: uuid.UUID
+    organization_id: uuid.UUID
+    user_id: uuid.UUID
+    query_text: str
+    filters: dict | None = None
+    result_count: int | None = None
+    execution_time_ms: float | None = None
     created_at: datetime
-    class Config: from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CitationRecordResponse(BaseModel):
-    id: uuid.UUID; organization_id: uuid.UUID; user_id: uuid.UUID
-    document_id: uuid.UUID; relevance_score: float | None = None
-    cited_text: str | None = None; created_at: datetime
-    class Config: from_attributes = True
+    id: uuid.UUID
+    organization_id: uuid.UUID
+    user_id: uuid.UUID
+    document_id: uuid.UUID
+    relevance_score: float | None = None
+    cited_text: str | None = None
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
 
 
 class SearchRequest(BaseModel):

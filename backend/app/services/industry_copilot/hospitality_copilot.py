@@ -1,5 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.services.ai_service import ai_service
+
 
 class HospitalityCopilot:
     def __init__(self, db: AsyncSession): self.db = db

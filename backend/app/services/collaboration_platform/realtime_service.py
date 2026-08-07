@@ -1,9 +1,12 @@
 import uuid
 from datetime import datetime
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.v5_collaboration import (
-    MultimodalMessage, SessionParticipant,
+    MultimodalMessage,
+    SessionParticipant,
 )
 from app.services.ai_service import ai_service
 
@@ -14,7 +17,7 @@ class RealtimeService:
 
     async def get_presence(self, session_id: uuid.UUID) -> list[dict]:
         rows = await self.db.execute(
-            select(SessionParticipant).where(SessionParticipant.session_id == session_id, SessionParticipant.is_present == True)
+            select(SessionParticipant).where(SessionParticipant.session_id == session_id, SessionParticipant.is_present.is_(True))
         )
         return [{"user_id": str(p.user_id), "role": p.role, "joined_at": p.joined_at.isoformat() if p.joined_at else None} for p in rows.scalars().all()]
 
@@ -24,7 +27,9 @@ class RealtimeService:
             message_type="realtime", content=event_type,
             meta_data=payload,
         )
-        self.db.add(msg); await self.db.commit(); await self.db.refresh(msg)
+        self.db.add(msg)
+        await self.db.commit()
+        await self.db.refresh(msg)
         return msg
 
     async def get_recent_activity(self, session_id: uuid.UUID, since: datetime | None = None, limit: int = 50) -> list[MultimodalMessage]:

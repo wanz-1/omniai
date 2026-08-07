@@ -40,4 +40,4 @@ def process_document_humanization(self, document_id: str):
     try:
         return run(_process())
     except Exception as exc:
-        raise self.retry(exc=exc)
+        raise self.retry(exc=exc) from exc

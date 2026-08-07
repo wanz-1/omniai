@@ -1,9 +1,9 @@
 import time
-from typing import Callable, Awaitable
+from collections.abc import Awaitable, Callable
 
 from fastapi import Request, Response
+from prometheus_client import CollectorRegistry, Counter, Gauge, Histogram
 from starlette.middleware.base import BaseHTTPMiddleware
-from prometheus_client import Counter, Gauge, Histogram, CollectorRegistry
 
 registry = CollectorRegistry(auto_describe=True)
 
@@ -179,9 +179,9 @@ def track_ai_request(
     ai_response_latency_seconds.labels(model=model, provider=provider).observe(duration_ms / 1000.0)
 
     if tokens_prompt:
-        ai_tokens_used_total.labels(model=model, provider=provider, token_type="prompt").inc(tokens_prompt)
+        ai_tokens_used_total.labels(model=model, provider=provider, token_type="prompt").inc(tokens_prompt)  # noqa: S106 - metric label
     if tokens_completion:
-        ai_tokens_used_total.labels(model=model, provider=provider, token_type="completion").inc(tokens_completion)
+        ai_tokens_used_total.labels(model=model, provider=provider, token_type="completion").inc(tokens_completion)  # noqa: S106 - metric label
     if context_size:
         ai_context_size_bytes.labels(model=model).observe(context_size)
     if cost_estimate:

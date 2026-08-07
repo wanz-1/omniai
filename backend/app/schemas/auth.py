@@ -1,8 +1,7 @@
 import uuid
 from datetime import datetime
-from typing import Optional
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class RegisterRequest(BaseModel):
@@ -19,7 +18,7 @@ class LoginRequest(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
-    token_type: str = "bearer"
+    token_type: str = "bearer"  # noqa: S105 - not a password, OAuth token type
 
 
 class RefreshTokenRequest(BaseModel):
@@ -55,7 +54,7 @@ class UserResponse(BaseModel):
     id: uuid.UUID
     email: str
     display_name: str
-    avatar_url: Optional[str] = None
+    avatar_url: str | None = None
     role: str
     is_verified: bool
     two_factor_enabled: bool
@@ -63,11 +62,10 @@ class UserResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserUpdateRequest(BaseModel):
-    display_name: Optional[str] = Field(None, min_length=1, max_length=100)
-    avatar_url: Optional[str] = None
-    bio: Optional[str] = None
+    display_name: str | None = Field(None, min_length=1, max_length=100)
+    avatar_url: str | None = None
+    bio: str | None = None

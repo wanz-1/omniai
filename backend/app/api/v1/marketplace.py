@@ -2,11 +2,11 @@ import uuid
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy import select, func, or_
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, get_db
-from app.core.exceptions import NotFoundError, ForbiddenError
+from app.core.exceptions import ForbiddenError, NotFoundError
 from app.models.marketplace import MarketplaceItem, MarketplacePurchase
 from app.models.user import User
 from app.schemas.marketplace import (

@@ -1,11 +1,12 @@
 import uuid
 from datetime import datetime
 from decimal import Decimal
+
 from sqlalchemy import Boolean, DateTime, Enum, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.core.constants import SubscriptionStatus, SubscriptionInterval
+from app.core.constants import SubscriptionInterval, SubscriptionStatus
 from app.models.base import Base, TimestampMixin, UUIDMixin
 
 

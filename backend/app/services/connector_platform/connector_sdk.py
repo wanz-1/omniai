@@ -1,6 +1,8 @@
 import uuid
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.v5_connector_platform import ConnectorDefinition
 from app.services.ai_service import ai_service
 

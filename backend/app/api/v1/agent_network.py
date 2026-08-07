@@ -1,13 +1,12 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.core.dependencies import get_current_user
-from app.core.dependencies import get_db
+from app.core.dependencies import get_current_user, get_db
 from app.models.agent_network import (
     AgentPerformance,
     AgentTaskDelegation,
@@ -41,8 +40,8 @@ from app.services.agent_evaluation import AgentEvaluationService
 from app.services.agent_governance import AgentGovernanceService
 from app.services.agent_memory_network import AgentMemoryNetworkService
 from app.services.agent_orchestrator import AgentOrchestrator
-from app.services.autonomous_research import AutonomousResearchService
 from app.services.ai_dev_team import AIDevTeamService
+from app.services.autonomous_research import AutonomousResearchService
 
 router = APIRouter()
 
@@ -293,7 +292,7 @@ async def complete_delegation(
     delegation.progress = 100.0
     delegation.output_data = output_data
     delegation.result_summary = result_summary
-    delegation.completed_at = datetime.now(timezone.utc)
+    delegation.completed_at = datetime.now(UTC)
     await db.commit()
     return delegation
 

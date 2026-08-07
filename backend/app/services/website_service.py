@@ -222,7 +222,7 @@ Only return valid JSON. No markdown. No explanations."""
             return f"""<footer style="padding:40px 20px;background:{card_bg};border-top:1px solid {border};text-align:center;">
                 <p style="color:{muted};">{c.get('text','© All rights reserved.')}</p>
                 <div style="display:flex;justify-content:center;gap:16px;margin-top:12px;">
-                {"".join(f'<a href="{l.get("url","#")}" style="color:{muted};text-decoration:none;font-size:0.85em;">{l.get("label","Link")}</a>' for l in c.get("links",[]))}
+                {"".join(f'<a href="{link.get("url","#")}" style="color:{muted};text-decoration:none;font-size:0.85em;">{link.get("label","Link")}</a>' for link in c.get("links",[]))}
                 </div></footer>"""
 
         return ""
@@ -276,7 +276,7 @@ details[open] summary {{margin-bottom:8px;}}
 <body>{nav_html}<main>{sections_html}</main></body></html>"""
 
         import hashlib
-        preview_id = hashlib.md5(str(website_id).encode()).hexdigest()[:12]
+        preview_id = hashlib.sha256(str(website_id).encode()).hexdigest()[:12]
         preview_url = f"/preview/{preview_id}"
 
         website.preview_url = preview_url

@@ -1,7 +1,9 @@
 import uuid
-from sqlalchemy import select, func
+
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models.v5_compliance import Policy, ComplianceCheck, AuditRecord, Finding, CorrectiveAction
+
+from app.models.v5_compliance import AuditRecord, ComplianceCheck, CorrectiveAction, Finding, Policy
 
 
 class ComplianceDashboardService:

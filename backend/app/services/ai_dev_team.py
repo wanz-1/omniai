@@ -1,13 +1,12 @@
 import json
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.agent_network import DevProject
 from app.services.ai_service import ai_service
-
 
 DEV_SYSTEM_PROMPTS = {
     "product_manager": "You are an expert Product Manager AI. Create detailed requirements, user stories, acceptance criteria, and product roadmaps.",
@@ -135,7 +134,7 @@ class AIDevTeamService:
         summary = await ai_service.complete(summary_messages, model="gpt-4o-mini", temperature=0.3)
         project.status = "completed"
         project.progress = 100.0
-        project.deployment_config = {"summary": summary.get("content", ""), "completed_at": datetime.now(timezone.utc).isoformat()}
+        project.deployment_config = {"summary": summary.get("content", ""), "completed_at": datetime.now(UTC).isoformat()}
         await self.db.commit()
         await self.db.refresh(project)
         return project
