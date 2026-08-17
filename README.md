@@ -65,7 +65,7 @@ cp .env.example .env
 make dev
 
 # Run database migrations (first run, and after pulling schema changes)
-docker compose -f infra/docker/docker-compose.yml exec backend alembic upgrade head
+docker compose -f infra/docker/docker-compose.yml exec backend alembic -c alembic/alembic.ini upgrade head
 ```
 
 ### Local Development
@@ -82,7 +82,7 @@ source .venv/bin/activate
 .venv\Scripts\activate
 
 pip install -r requirements/dev.txt
-alembic upgrade head
+alembic -c alembic/alembic.ini upgrade head
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 

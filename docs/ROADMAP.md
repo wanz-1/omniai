@@ -14,15 +14,16 @@
   - **Status:** implemented and shipped in `1dbec8d`; covered by 4 guardrail tests in `tests/test_release_checklist.py` (blocks production and staging with `DEBUG=true`, allows dev with `DEBUG=true`, allows production with `DEBUG=false`).
 - **Hardening release** — AI-service crash/leak fixes, Stripe webhook rewrites, API auth gaps closed, real Celery tasks and agent tools, Docker/CI hardening, and live frontend analytics. See `docs/v6.0.1-hardening-report.md`.
 
-## v6.1
+## v6.1 — ✅ COMPLETE
 
-- **DB-001: Migration ownership** — make Alembic the authoritative source for the full schema.
+- **DB-001: Migration ownership** — Alembic is now the authoritative source for the full schema.
   - Milestones:
-    1. Inventory tables currently created via `create_all()` (227 ORM tables; 7 migration-tracked).
-    2. Generate migration equivalents.
-    3. Validate upgrade/downgrade paths.
-    4. Remove runtime schema creation once migration parity is complete.
-  - **Success criteria:** migration graph covers all tables; downgrade path clean; `create_all()` removal verified by tests.
+    1. Inventoried tables: 227 ORM tables (7 migration-tracked, 220 via `create_all`).
+    2. Generated migration `0003_adopt_remaining_schema.py` — static, idempotent baseline (`IF NOT EXISTS`) covering all 220 tables + 536 indexes + 12 named enum types, with a clean `downgrade`.
+    3. Validated offline upgrade (`--sql`) and downgrade paths; CI `backend-migrate` job runs real-Postgres upgrade → parity → downgrade → re-upgrade.
+    4. Removed runtime `Base.metadata.create_all` from `app/main.py` startup.
+  - **Success criteria met:** migration graph covers all 227 tables; downgrade path clean; `create_all()` removal verified by tests (full-coverage parity test + foreign-key integrity test in `test_release_checklist.py`).
+  - **Bug found & fixed during adoption:** `ai_monitoring_events_v4.tenant_id` referenced a nonexistent `tenants` table, which made `Base.metadata.create_all` raise `NoReferencedTableError` at startup (the app could not boot against a real Postgres). The impossible FK was removed (column kept); FK-target integrity is now guarded by a release-checklist test.
 
 ## v7.0
 

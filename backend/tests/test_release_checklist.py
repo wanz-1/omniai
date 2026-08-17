@@ -33,8 +33,9 @@ def test_migration_graph_is_single_head():
 
 
 @pytest.mark.unit
-def test_migration_tables_match_model_metadata():
-    """Tables created by migrations must exist in the ORM metadata (no drift)."""
+def test_migration_tables_cover_all_model_metadata():
+    """Alembic owns the full schema: every ORM table must be created by a
+    migration, and migrations must not create tables unknown to the ORM."""
     import re
     import app.models  # noqa: F401  (registers all models on Base.metadata)
     from app.models.base import Base
@@ -46,11 +47,33 @@ def test_migration_tables_match_model_metadata():
             continue
         src = open(os.path.join(versions_dir, fname), encoding="utf-8").read()
         migrated |= set(re.findall(r'op\.create_table\(\s*["\']([^"\']+)', src))
+        migrated |= set(re.findall(r"CREATE TABLE IF NOT EXISTS (\w+)", src))
     assert migrated, "no create_table ops found in migrations"
 
     model_tables = set(Base.metadata.tables.keys())
-    missing = sorted(t for t in migrated if t not in model_tables)
-    assert not missing, f"migration tables missing from ORM metadata: {missing}"
+    missing = sorted(model_tables - migrated)
+    assert not missing, f"ORM tables missing from migrations: {missing}"
+    extra = sorted(migrated - model_tables)
+    assert not extra, f"migration tables missing from ORM metadata: {extra}"
+
+
+@pytest.mark.unit
+def test_all_foreign_key_targets_exist_in_metadata():
+    """No phantom FK targets: every ForeignKey must resolve to a real table."""
+    import app.models  # noqa: F401  (registers all models on Base.metadata)
+    from app.models.base import Base
+
+    model_tables = set(Base.metadata.tables.keys())
+    dangling = sorted(
+        f"{t.name}.{fk.parent.name} -> {fk.target_fullname}"
+        for t in Base.metadata.tables.values()
+        for fk in t.foreign_keys
+        if fk.target_fullname.split(".")[0] not in model_tables
+    )
+    assert not dangling, f"foreign keys referencing unknown tables: {dangling}"
+    # sorted_tables resolves the full dependency graph and raises
+    # NoReferencedTableError if any reference cannot be satisfied.
+    assert len(Base.metadata.sorted_tables) == len(model_tables)
 
 
 @pytest.mark.unit

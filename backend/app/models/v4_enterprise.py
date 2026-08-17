@@ -125,7 +125,7 @@ class AIMonitoringEventV4(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "ai_monitoring_events_v4"
 
     organization_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=False, index=True)
-    tenant_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False, index=True)
+    tenant_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
     event_type: Mapped[str] = mapped_column(String(100), nullable=False)
     model_id: Mapped[str | None] = mapped_column(String(200), nullable=True)
     model_provider: Mapped[str | None] = mapped_column(String(100), nullable=True)

@@ -48,21 +48,23 @@ Alembic now executes from any working directory (`script_location = %(here)s`).
 ```bash
 cd backend
 # offline sanity check (no DB connection required)
-alembic upgrade head --sql > /tmp/migration_plan.sql
+alembic -c alembic/alembic.ini upgrade head --sql > /tmp/migration_plan.sql
 
 # apply
-alembic upgrade head
-alembic current          # expect: 0002
+alembic -c alembic/alembic.ini upgrade head
+alembic -c alembic/alembic.ini current          # expect: 0003
 ```
 
 Notes:
-- Single migration head `0002`; tables tracked: `user_sessions`,
-  `subscription_plans`, `subscriptions`, `invoices`,
-  `integration_connections`, `marketplace_items`, `marketplace_purchases`.
-- Remaining schema is created idempotently by `Base.metadata.create_all` at
-  application startup (tracked as future tech debt, ticket DB-001).
-- Migration↔model parity is enforced by
-  `test_migration_tables_match_model_metadata`.
+- Alembic owns the full schema (DB-001): migration `0002` tracks the 7
+  sprint-managed tables (`user_sessions`, `subscription_plans`, `subscriptions`,
+  `invoices`, `integration_connections`, `marketplace_items`,
+  `marketplace_purchases`) and `0003` adopts the remaining 220 tables that were
+  previously created via `Base.metadata.create_all`. The migration is idempotent
+  (`IF NOT EXISTS`), so it applies cleanly to both fresh and pre-existing
+  databases; `create_all` has been removed from application startup.
+- Migration↔model parity and foreign-key integrity are enforced by
+  `test_release_checklist.py` and by the CI `backend-migrate` job.
 
 ## 4. Application Startup
 
@@ -73,7 +75,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000
 
 Startup log events to confirm healthy boot:
 - `app_startup` ("Starting OmniAI backend")
-- `db_tables_created` ("Database tables created/verified")
+- `db_schema_migrations` ("Schema ownership: Alembic migrations ...")
 
 ## 5. Health Gates (gate 4) — verify after each deploy
 

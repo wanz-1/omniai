@@ -112,11 +112,11 @@ kubectl get ingress
 
 ### 4. Database Migration
 
-Database tables are auto-created on application startup via SQLAlchemy `create_all`. For production, use Alembic:
+Alembic is the authoritative source for the full schema (DB-001). Run the migration before starting the application — the app no longer auto-creates tables at startup:
 
 ```bash
 cd backend
-alembic upgrade head
+alembic -c alembic/alembic.ini upgrade head
 ```
 
 ### 5. Monitoring Setup
