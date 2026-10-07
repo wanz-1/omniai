@@ -1,0 +1,229 @@
+# OmniAI — Render Blueprint (single-URL deployment)
+# One public web service serves BOTH the frontend and the backend on a single
+# URL (nginx → Next.js + FastAPI). A separate internal Celery worker is optional.
+#
+# Deploy: Render Dashboard → "New +" → "Blueprint" → connect this repo.
+# After creating the Blueprint, set the `sync: false` / AI key secrets, then
+# the service becomes live at: https://<name>-xxxx.onrender.com
+# Full reference: docs/render-deployment.md
+
+services:
+  # ── Single public web service: frontend + backend ─────────────────────────
+  - type: web
+    name: omniai
+    runtime: docker
+    plan: starter
+    dockerfilePath: Dockerfile.render
+    dockerContext: .
+    healthCheckPath: /live
+    preDeployCommand: cd backend && alembic upgrade head && python scripts/seed_plans.py
+    numInstances: 1
+    envVars:
+      # App / environment
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: "false"
+      - key: LOG_LEVEL
+        value: INFO
+      - key: APP_VERSION
+        value: "6.0.0"
+      - key: DEFAULT_AI_PROVIDER
+        value: openai
+
+      # Frontend build-time URLs (same origin; relative for API, empty WS → derived)
+      - key: NEXT_PUBLIC_API_URL
+        value: /api/v1
+      - key: NEXT_PUBLIC_WS_URL
+        value: ""
+
+      # Data stores
+      - key: DATABASE_URL
+        fromDatabase:
+          name: omniai-postgres
+          property: connectionString
+      - key: DATABASE_URL_SYNC
+        fromDatabase:
+          name: omniai-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: omniai-redis
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: keyvalue
+          name: omniai-redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: keyvalue
+          name: omniai-redis
+          property: connectionString
+
+      # Auth
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "30"
+      - key: REFRESH_TOKEN_EXPIRE_DAYS
+        value: "14"
+      - key: MFA_ENABLED
+        value: "true"
+
+      # AI providers — set at least one for AI features
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GOOGLE_GEMINI_API_KEY
+        sync: false
+      - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: MISTRAL_API_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: NVIDIA_API_KEY
+        sync: false
+      - key: NVIDIA_BASE_URL
+        value: https://integrate.api.nvidia.com/v1
+      - key: OLLAMA_BASE_URL
+        value: http://localhost:11434
+      - key: VLLM_BASE_URL
+        sync: false
+
+      # Object storage (optional — AWS S3 / R2; Render has no managed MinIO)
+      - key: S3_ENDPOINT
+        sync: false
+      - key: S3_ACCESS_KEY
+        sync: false
+      - key: S3_SECRET_KEY
+        sync: false
+      - key: S3_BUCKET
+        sync: false
+      - key: S3_REGION
+        value: us-east-1
+
+      # Payments (optional)
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+
+      # Observability (optional)
+      - key: SENTRY_DSN
+        sync: false
+
+      # Rate limiting
+      - key: RATE_LIMIT_ENABLED
+        value: "true"
+      - key: RATE_LIMIT_REQUESTS
+        value: "100"
+      - key: RATE_LIMIT_WINDOW_SECONDS
+        value: "60"
+      - key: TRUSTED_PROXIES
+        value: '["127.0.0.1"]'
+
+      # SMTP (optional; enables the agent email tool)
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USERNAME
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: SMTP_FROM_EMAIL
+        sync: false
+      - key: SMTP_USE_TLS
+        value: "true"
+
+  # ── Optional: Celery worker (async tasks: document processing, bot deploys) ──
+  # If you don't add this, background tasks won't run. Same image, RUN_MODE=worker.
+  - type: worker
+    name: omniai-celery
+    runtime: docker
+    plan: starter
+    dockerfilePath: Dockerfile.render
+    dockerContext: .
+    envVars:
+      - key: RUN_MODE
+        value: worker
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: "false"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL_SYNC
+        fromDatabase:
+          name: omniai-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: omniai-redis
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: keyvalue
+          name: omniai-redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: keyvalue
+          name: omniai-redis
+          property: connectionString
+      - key: S3_ENDPOINT
+        sync: false
+      - key: S3_ACCESS_KEY
+        sync: false
+      - key: S3_SECRET_KEY
+        sync: false
+      - key: S3_BUCKET
+        sync: false
+      - key: S3_REGION
+        value: us-east-1
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GOOGLE_GEMINI_API_KEY
+        sync: false
+      - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: MISTRAL_API_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: NVIDIA_API_KEY
+        sync: false
+      - key: NVIDIA_BASE_URL
+        value: https://integrate.api.nvidia.com/v1
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
+
+  # ── Redis (cache + Celery broker/results) ─────────────────────────────────
+  - type: keyvalue
+    name: omniai-redis
+    plan: starter
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: allow all (services only)
+
+databases:
+  - name: omniai-postgres
+    databaseName: omniai
+    user: omniai
+    plan: basic-256mb
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: allow all (services only)

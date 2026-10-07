@@ -96,6 +96,22 @@ class Settings(BaseSettings):
     agent_workspace_dir: str = "./data/agent_workspace"
 
     @model_validator(mode="after")
+    def _normalize_database_urls(self):
+        if self.database_url:
+            url = self.database_url
+            if url.startswith("postgres://"):
+                url = url.replace("postgres://", "postgresql://", 1)
+            if url.startswith("postgresql://") and "+asyncpg" not in url:
+                url = url.replace("postgresql://", "postgresql+asyncpg://", 1)
+            self.database_url = url
+        if self.database_url_sync:
+            url = self.database_url_sync
+            if url.startswith("postgres://"):
+                url = url.replace("postgres://", "postgresql://", 1)
+            self.database_url_sync = url
+        return self
+
+    @model_validator(mode="after")
     def _enforce_secure_secrets(self):
         env = self.environment.lower()
         if env in ("production", "prod", "staging"):

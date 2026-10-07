@@ -1,0 +1,45 @@
+# OmniAI — combined single-URL image (frontend + backend + nginx)
+# Used for Render single web service. nginx proxies:
+#   /api/*, /ws, health → uvicorn (FastAPI, :8000)
+#   everything else      → Next.js (next start, :3000)
+
+# ── Stage 1: build the Next.js frontend ──────────────────────────────
+FROM node:20-alpine AS frontend-build
+WORKDIR /app/frontend
+
+ARG NEXT_PUBLIC_API_URL=/api/v1
+ARG NEXT_PUBLIC_WS_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_WS_URL=$NEXT_PUBLIC_WS_URL
+
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci
+COPY frontend/ .
+RUN npm run build
+RUN npm prune --omit=dev && npm cache clean --force
+
+# ── Stage 2: runtime (backend + nginx + frontend build) ──────────────
+FROM python:3.12-slim
+WORKDIR /app/backend
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential libpq-dev nginx gettext-base curl && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY backend/requirements/base.txt .
+RUN pip install --no-cache-dir -r base.txt
+
+COPY backend/ .
+COPY --from=frontend-build /app/frontend/.next /app/frontend/.next
+COPY --from=frontend-build /app/frontend/node_modules /app/frontend/node_modules
+COPY --from=frontend-build /app/frontend/package.json /app/frontend/package.json
+COPY --from=frontend-build /app/frontend/next.config.js /app/frontend/next.config.js
+COPY --from=frontend-build /app/frontend/public /app/frontend/public
+
+COPY deploy/render/nginx.template.conf /etc/nginx/templates/default.conf.template
+COPY deploy/render/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+WORKDIR /app
+EXPOSE 3000
+ENTRYPOINT ["/entrypoint.sh"]
