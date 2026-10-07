@@ -21,24 +21,27 @@ export default function AgentNetworkPage() {
   const [tab, setTab] = useState<Tab>("orchestrate");
   const [dashboard, setDashboard] = useState<any>(null);
 
-  useEffect(() => { loadOrg(); }, []);
-  useEffect(() => { if (orgId) loadDashboard(); }, [orgId]);
+  useEffect(() => {
+    const loadOrg = async () => {
+      try {
+        const res = await fetch("/api/organizations");
+        const orgs = await res.json();
+        if (orgs.length > 0) setOrgId(orgs[0].id);
+      } catch {} finally { setLoading(false); }
+    };
+    loadOrg();
+  }, []);
 
-  const loadOrg = async () => {
-    try {
-      const res = await fetch("/api/organizations");
-      const orgs = await res.json();
-      if (orgs.length > 0) setOrgId(orgs[0].id);
-    } catch {} finally { setLoading(false); }
-  };
-
-  const loadDashboard = async () => {
+  useEffect(() => {
     if (!orgId) return;
-    try {
-      const res = await agentNetworkApi.dashboard(orgId);
-      setDashboard(res.data);
-    } catch {}
-  };
+    const loadDashboard = async () => {
+      try {
+        const res = await agentNetworkApi.dashboard(orgId);
+        setDashboard(res.data);
+      } catch {}
+    };
+    loadDashboard();
+  }, [orgId]);
 
   const tabs: { key: Tab; label: string; icon: any; description: string }[] = [
     { key: "orchestrate", label: "Orchestrate", icon: Cpu, description: "Multi-agent planning & execution" },
@@ -145,7 +148,13 @@ function TeamsTab({ orgId }: { orgId: string | null }) {
   const [name, setName] = useState("");
   const [purpose, setPurpose] = useState("");
 
-  useEffect(() => { if (orgId) loadTeams(); }, [orgId]);
+  useEffect(() => {
+    if (!orgId) return;
+    const loadTeamsNow = async () => {
+      try { const res = await agentNetworkApi.teams(orgId); setTeams(res.data); } catch {} finally { setLoading(false); }
+    };
+    loadTeamsNow();
+  }, [orgId]);
 
   const loadTeams = async () => {
     if (!orgId) return;
@@ -445,7 +454,13 @@ function DevTab({ orgId }: { orgId: string | null }) {
   const [requirements, setRequirements] = useState("");
   const [selectedProject, setSelectedProject] = useState<any>(null);
 
-  useEffect(() => { if (orgId) loadProjects(); }, [orgId]);
+  useEffect(() => {
+    if (!orgId) return;
+    const loadProjectsNow = async () => {
+      try { const res = await agentNetworkApi.listDevProjects(orgId); setProjects(res.data); } catch {} finally { setLoading(false); }
+    };
+    loadProjectsNow();
+  }, [orgId]);
 
   const loadProjects = async () => {
     if (!orgId) return;

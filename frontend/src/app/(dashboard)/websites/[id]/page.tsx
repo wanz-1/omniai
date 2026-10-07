@@ -58,9 +58,25 @@ export default function WebsiteWorkspacePage() {
   const [activePage, setActivePage] = useState("index");
 
   useEffect(() => {
-    if (websiteId) loadWebsite();
-  }, [websiteId]);
-
+    if (!websiteId) return;
+    const loadWebsite = async () => {
+      setIsLoading(true);
+      try {
+        const res = await websitesApi.get(websiteId);
+        const data = res.data;
+        setWebsite(data);
+        if (data.pages?.length > 0) {
+          setActivePage(data.pages[0].slug);
+        }
+      } catch {
+        toast.error("Failed to load website");
+        router.push("/websites");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadWebsite();
+  }, [websiteId, router]);
   const loadWebsite = async () => {
     setIsLoading(true);
     try {

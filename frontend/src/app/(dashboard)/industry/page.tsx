@@ -32,25 +32,28 @@ export default function IndustryPage() {
   const [subTab, setSubTab] = useState<SubTab>("overview");
   const [dashboard, setDashboard] = useState<any>(null);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await industryApi.list();
+        const list = res.data;
+        setIndustries(list);
+        if (list.length > 0) setSelectedSlug((current) => current || list[0].slug);
+      } catch {} finally { setLoading(false); }
+    };
+    load();
+  }, []);
 
-  const load = async () => {
-    try {
-      const res = await industryApi.list();
-      const list = res.data;
-      setIndustries(list);
-      if (list.length > 0 && !selectedSlug) setSelectedSlug(list[0].slug);
-    } catch {} finally { setLoading(false); }
-  };
-
-  useEffect(() => { if (selectedSlug) loadDashboard(); }, [selectedSlug]);
-
-  const loadDashboard = async () => {
-    try {
-      const res = await industryApi.dashboard(selectedSlug!);
-      setDashboard(res.data);
-    } catch { setDashboard(null); }
-  };
+  useEffect(() => {
+    if (!selectedSlug) return;
+    const loadDashboard = async () => {
+      try {
+        const res = await industryApi.dashboard(selectedSlug);
+        setDashboard(res.data);
+      } catch { setDashboard(null); }
+    };
+    loadDashboard();
+  }, [selectedSlug]);
 
   if (loading) return <div className="flex items-center justify-center h-64"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
 

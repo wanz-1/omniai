@@ -34,13 +34,16 @@ export default function CodeStudioPage() {
   const [activeFile, setActiveFile] = useState<StudioFile | null>(null);
   const [dashboard, setDashboard] = useState<any>(null);
 
-  useEffect(() => { loadOrg(); }, []);
-  useEffect(() => { if (orgId) { loadProjects(); loadDashboard(); } }, [orgId]);
-  useEffect(() => { if (activeProject) loadFiles(); }, [activeProject]);
-
-  const loadOrg = async () => {
-    try { const res = await fetch("/api/organizations"); const orgs = await res.json(); if (orgs.length > 0) setOrgId(orgs[0].id); } catch {} finally { setLoading(false); }
-  };
+  useEffect(() => {
+    const loadOrg = async () => {
+      try {
+        const res = await fetch("/api/organizations");
+        const orgs = await res.json();
+        if (orgs.length > 0) setOrgId(orgs[0].id);
+      } catch {} finally { setLoading(false); }
+    };
+    loadOrg();
+  }, []);
 
   const loadProjects = async () => {
     if (!orgId) return;
@@ -56,6 +59,30 @@ export default function CodeStudioPage() {
     if (!activeProject) return;
     try { const res = await codeStudioApi.files(activeProject.id); setFiles(res.data); } catch {}
   };
+
+  useEffect(() => {
+    if (!orgId) return;
+    const refreshWorkspace = async () => {
+      try {
+        const [projectsRes, dashboardRes] = await Promise.all([
+          codeStudioApi.projects(orgId),
+          codeStudioApi.dashboard(orgId),
+        ]);
+        setProjects(projectsRes.data);
+        setActiveProject((current) => current || projectsRes.data[0] || null);
+        setDashboard(dashboardRes.data);
+      } catch {}
+    };
+    refreshWorkspace();
+  }, [orgId]);
+
+  useEffect(() => {
+    if (!activeProject) return;
+    const loadFiles = async () => {
+      try { const res = await codeStudioApi.files(activeProject.id); setFiles(res.data); } catch {}
+    };
+    loadFiles();
+  }, [activeProject]);
 
   const handleDeleteProject = async (id: string) => {
     try { await codeStudioApi.deleteProject(id); toast.success("Deleted"); loadProjects(); if (activeProject?.id === id) { setActiveProject(null); setFiles([]); } } catch { toast.error("Failed"); }
@@ -353,7 +380,13 @@ function TestsTab({ activeProject }: { activeProject: StudioProject | null }) {
   const [framework, setFramework] = useState("");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => { if (activeProject) loadTests(); }, [activeProject]);
+  useEffect(() => {
+    if (!activeProject) return;
+    const loadTests = async () => {
+      try { const res = await codeStudioApi.testRuns(activeProject.id); setTestRuns(res.data); } catch {}
+    };
+    loadTests();
+  }, [activeProject]);
 
   const loadTests = async () => {
     if (!activeProject) return;
@@ -412,7 +445,13 @@ function SecurityTab({ activeProject }: { activeProject: StudioProject | null })
   const [loading, setLoading] = useState(false);
   const [selectedScan, setSelectedScan] = useState<any>(null);
 
-  useEffect(() => { if (activeProject) { loadScans(); loadSummary(); } }, [activeProject]);
+  useEffect(() => {
+    if (!activeProject) return;
+    const loadScans = async () => {
+      try { const [s, sm] = await Promise.all([codeStudioApi.securityScans(activeProject.id), codeStudioApi.securitySummary(activeProject.id)]); setScans(s.data); setSummary(sm.data); } catch {}
+    };
+    loadScans();
+  }, [activeProject]);
 
   const loadScans = async () => {
     if (!activeProject) return;
@@ -497,7 +536,15 @@ function DeployTab({ activeProject }: { activeProject: StudioProject | null }) {
   const [loading, setLoading] = useState(false);
   const [cicdResult, setCicdResult] = useState("");
 
-  useEffect(() => { if (activeProject) { loadBuilds(); loadDeployments(); loadDocs(); } }, [activeProject]);
+  useEffect(() => {
+    if (!activeProject) return;
+    const loadBuilds = async () => { try { const res = await codeStudioApi.builds(activeProject.id); setBuilds(res.data); } catch {} };
+    const loadDeployments = async () => { try { const res = await codeStudioApi.deployments(activeProject.id); setDeployments(res.data); } catch {} };
+    const loadDocs = async () => { try { const res = await codeStudioApi.docs(activeProject.id); setDocs(res.data); } catch {} };
+    loadBuilds();
+    loadDeployments();
+    loadDocs();
+  }, [activeProject]);
 
   const loadBuilds = async () => { if (!activeProject) return; try { const res = await codeStudioApi.builds(activeProject.id); setBuilds(res.data); } catch {} };
   const loadDeployments = async () => { if (!activeProject) return; try { const res = await codeStudioApi.deployments(activeProject.id); setDeployments(res.data); } catch {} };

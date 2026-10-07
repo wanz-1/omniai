@@ -6,19 +6,20 @@ import { useAuth } from "./useAuth";
 
 export function useWebSocket() {
   const { isAuthenticated, user } = useAuth();
+  const userId = user?.id;
 
   useEffect(() => {
-    if (isAuthenticated && user) {
+    if (isAuthenticated && userId) {
       const token = localStorage.getItem("access_token");
       if (token) {
         wsClient.connect(token);
-        wsClient.subscribe(`notifications:${user.id}`);
+        wsClient.subscribe(`notifications:${userId}`);
       }
     }
     return () => {
       wsClient.disconnect();
     };
-  }, [isAuthenticated, user?.id]);
+  }, [isAuthenticated, userId]);
 
   const subscribe = useCallback((channel: string) => {
     wsClient.subscribe(channel);

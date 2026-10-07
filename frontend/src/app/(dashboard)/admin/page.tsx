@@ -51,8 +51,32 @@ export default function AdminPage() {
   const [usersLoading, setUsersLoading] = useState(false);
 
   useEffect(() => {
-    if (tab === "overview") loadOverview();
-    if (tab === "users") loadUsers();
+    if (tab === "overview") {
+      const loadOverview = async () => {
+        try {
+          const res = await apiClient.get("/admin/overview");
+          setOverview(res.data);
+        } catch {
+          toast.error("Failed to load overview");
+        }
+      };
+      loadOverview();
+    }
+    if (tab === "users") {
+      const loadUsers = async () => {
+        setUsersLoading(true);
+        try {
+          const params: any = { limit: 50 };
+          const res = await apiClient.get("/admin/users", { params });
+          setUsers(res.data);
+        } catch {
+          toast.error("Failed to load users");
+        } finally {
+          setUsersLoading(false);
+        }
+      };
+      loadUsers();
+    }
   }, [tab]);
 
   const loadOverview = async () => {

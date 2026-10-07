@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { visionApi } from "@/lib/api-client";
@@ -94,8 +95,8 @@ export function VisionAnalyzer({ onResult }: VisionAnalyzerProps) {
           />
         </div>
       ) : (
-        <div className="relative">
-          <img src={image} alt="Uploaded" className="max-h-64 rounded-xl object-contain w-full bg-muted/30" />
+        <div className="relative h-64 w-full overflow-hidden rounded-xl bg-muted/30">
+          <Image src={image} alt="Uploaded" fill unoptimized className="object-contain" />
           <Button variant="ghost" size="sm" className="absolute top-2 right-2" onClick={clearImage}>
             <X className="w-4 h-4" />
           </Button>

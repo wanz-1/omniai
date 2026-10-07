@@ -47,6 +47,17 @@ export function AnalyticsPanel({ botId, className }: AnalyticsPanelProps) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const loadAnalytics = async () => {
+      setIsLoading(true);
+      try {
+        const res = await botsApi.analytics(botId);
+        setAnalytics(res.data);
+      } catch {
+        toast.error("Failed to load analytics");
+      } finally {
+        setIsLoading(false);
+      }
+    };
     loadAnalytics();
   }, [botId]);
 

@@ -70,9 +70,26 @@ export default function CodeProjectWorkspacePage() {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (projectId) loadProject();
-  }, [projectId]);
-
+    if (!projectId) return;
+    const loadProject = async () => {
+      setIsLoading(true);
+      try {
+        const res = await codeApi.getProject(projectId);
+        setProject(res.data);
+        const files = res.data.files || [];
+        if (files.length > 0) {
+          setActiveFile(files[0].path);
+          setOutputCode(files[0].content || "");
+        }
+      } catch {
+        toast.error("Failed to load project");
+        router.push("/code");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadProject();
+  }, [projectId, router]);
   const loadProject = async () => {
     setIsLoading(true);
     try {

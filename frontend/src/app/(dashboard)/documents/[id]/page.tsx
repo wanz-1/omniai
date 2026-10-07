@@ -68,9 +68,28 @@ export default function DocumentWorkspacePage() {
   const autoSaveRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (!isNew && docId) loadDocument();
-  }, [docId]);
-
+    if (isNew || !docId) return;
+    const loadDocument = async () => {
+      setIsLoading(true);
+      try {
+        const [docRes, versionsRes] = await Promise.all([
+          documentsApi.get(docId),
+          documentsApi.versions.list(docId),
+        ]);
+        const doc = docRes.data;
+        setTitle(doc.title || "");
+        setOriginalContent(doc.content || "");
+        setHumanizedContent(doc.humanized_content || "");
+        setVersions(versionsRes.data || []);
+      } catch {
+        toast.error("Failed to load document");
+        router.push("/documents");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadDocument();
+  }, [docId, isNew, router]);
   const loadDocument = async () => {
     setIsLoading(true);
     try {

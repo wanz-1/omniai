@@ -42,21 +42,23 @@ export default function BusinessPage() {
   const [tab, setTab] = useState<"chat" | "reports" | "approvals" | "knowledge" | "workflows">("chat");
 
   useEffect(() => {
+    const loadOrg = async () => {
+      try {
+        const res = await fetch("/api/organizations");
+        const orgs = await res.json();
+        if (orgs.length > 0) {
+          setOrgId(orgs[0].id);
+          const dashboardRes = await businessApi.dashboard(orgs[0].id);
+          setDashboard(dashboardRes.data);
+        }
+      } catch {
+        // ignore
+      } finally {
+        setLoading(false);
+      }
+    };
     loadOrg();
   }, []);
-
-  const loadOrg = async () => {
-    try {
-      const res = await fetch("/api/organizations");
-      const orgs = await res.json();
-      if (orgs.length > 0) {
-        setOrgId(orgs[0].id);
-        loadDashboard(orgs[0].id);
-      }
-    } catch {
-      setLoading(false);
-    }
-  };
 
   const loadDashboard = async (id: string) => {
     try {

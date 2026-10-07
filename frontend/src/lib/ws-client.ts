@@ -11,8 +11,17 @@ class WebSocketClient {
     if (this.ws?.readyState === WebSocket.OPEN) return;
     this.shouldReconnect = true;
 
-    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || "ws://localhost:8000/api/v1/ws";
-    this.ws = new WebSocket(`${wsUrl}?token=${token}`);
+    const configured = process.env.NEXT_PUBLIC_WS_URL;
+    let base: string;
+    if (configured) {
+      base = configured;
+    } else if (typeof window !== "undefined") {
+      const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+      base = `${proto}//${window.location.host}/api/v1/ws`;
+    } else {
+      base = "ws://localhost:8000/api/v1/ws";
+    }
+    this.ws = new WebSocket(`${base}?token=${token}`);
 
     this.ws.onopen = () => {
       this.reconnectAttempts = 0;

@@ -52,8 +52,21 @@ export default function AgentWorkspacePage() {
   const [activeTab, setActiveTab] = useState<TabId>("chat");
 
   useEffect(() => {
-    if (agentId) loadAgent();
-  }, [agentId]);
+    if (!agentId) return;
+    const loadAgent = async () => {
+      setIsLoading(true);
+      try {
+        const res = await agentsApi.get(agentId);
+        setAgent(res.data);
+      } catch {
+        toast.error("Failed to load agent");
+        router.push("/agents");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadAgent();
+  }, [agentId, router]);
 
   const loadAgent = async () => {
     setIsLoading(true);

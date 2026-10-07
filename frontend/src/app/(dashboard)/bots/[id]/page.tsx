@@ -62,8 +62,21 @@ export default function BotWorkspacePage() {
   const [knowledgeSources, setKnowledgeSources] = useState<any[]>([]);
 
   useEffect(() => {
-    if (botId) loadBot();
-  }, [botId]);
+    if (!botId) return;
+    const loadBot = async () => {
+      setIsLoading(true);
+      try {
+        const res = await botsApi.get(botId);
+        setBot(res.data);
+      } catch {
+        toast.error("Failed to load bot");
+        router.push("/bots");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadBot();
+  }, [botId, router]);
 
   useEffect(() => {
     if (bot?.knowledge_base_config?.text) {

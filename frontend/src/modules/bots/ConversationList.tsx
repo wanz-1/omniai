@@ -38,12 +38,35 @@ export function ConversationList({ botId, className }: ConversationListProps) {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
+    const loadConversations = async () => {
+      setIsLoading(true);
+      try {
+        const res = await botsApi.conversations(botId);
+        setConversations(res.data);
+      } catch {
+        toast.error("Failed to load conversations");
+      } finally {
+        setIsLoading(false);
+      }
+    };
     loadConversations();
   }, [botId]);
 
   useEffect(() => {
-    if (selectedConv) loadMessages(selectedConv);
-  }, [selectedConv]);
+    if (!selectedConv) return;
+    const loadMessages = async (convId: string) => {
+      setIsLoadingMessages(true);
+      try {
+        const res = await botsApi.getConversationMessages(botId, convId);
+        setMessages(res.data);
+      } catch {
+        toast.error("Failed to load messages");
+      } finally {
+        setIsLoadingMessages(false);
+      }
+    };
+    loadMessages(selectedConv);
+  }, [selectedConv, botId]);
 
   const loadConversations = async () => {
     setIsLoading(true);
