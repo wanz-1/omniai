@@ -8,6 +8,7 @@ import uuid
 
 import pytest
 
+from app.core.config import settings
 from app.main import app
 from app.models.notification import Notification
 
@@ -18,7 +19,7 @@ NOTIFS = "/api/v1/notifications"
 def test_openapi_document_generates():
     schema = app.openapi()
     assert schema["openapi"].startswith("3.")
-    assert schema["info"]["version"] == "6.0.0"
+    assert schema["info"]["version"] == settings.app_version
     assert len(schema["paths"]) > 400
 
 

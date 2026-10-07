@@ -72,7 +72,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 app = FastAPI(
     title="OmniAI API",
     description="OmniAI — One AI. Unlimited Possibilities.",
-    version="6.0.0",
+    version=settings.app_version,
     lifespan=lifespan,
     docs_url=None if settings.environment == "production" else "/docs",
     redoc_url=None if settings.environment == "production" else "/redoc",
